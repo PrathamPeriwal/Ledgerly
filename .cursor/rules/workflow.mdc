@@ -11,3 +11,10 @@ alwaysApply: true
 - Destructive database operations (migrate reset, truncate, deleteMany over tables, a seed that wipes data) need my explicit confirmation in chat and a fresh backup first. Print the target database host (never credentials) before running them.
 - Database migrations must be additive only (new indexes, new nullable columns) while main is deployed. Never edit an already-applied migration. No drops or renames.
 - At the end of every phase report: summary, files changed, how I can verify it manually, and known issues.
+
+## Testing
+- You run all tests yourself; I do not test manually. List something under "NEEDS HUMAN" only if it truly cannot be automated (a dashboard setting, a secret you do not have, a visual judgement), with exact steps. Never block the rest of the work on it.
+- Before every phase commit run "npm run verify" (lint, unit tests, build, smoke). Phases that touch pages, data or auth must also run "npm run test:e2e" once it exists.
+- Add or update tests for what each phase changes. Assert behaviour; no snapshot tests of markup.
+- Tests must never write to the database except for demo users (@ledgerly-demo.test), and must restore anything they change. Never run destructive tests against other data.
+- If a test fails, fix the code or the test and re-run. Never delete or skip a test to get green.

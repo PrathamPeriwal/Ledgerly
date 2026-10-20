@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
 import { subDays } from "date-fns";
 
 const ACCOUNT_ID = "account-id";
@@ -42,6 +43,9 @@ function getRandomCategory(type) {
 }
 
 export async function seedTransactions() {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
   try {
     // Generate 90 days of transactions
     const transactions = [];

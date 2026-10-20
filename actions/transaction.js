@@ -213,10 +213,13 @@ export async function getUserTransactions(query = {}) {
       throw new Error("User not found");
     }
 
+    const filters = { ...(query ?? {}) };
+    delete filters.userId;
+
     const transactions = await db.transaction.findMany({
       where: {
+        ...filters,
         userId: user.id,
-        ...query,
       },
       include: {
         account: true,
@@ -232,18 +235,26 @@ export async function getUserTransactions(query = {}) {
   }
 }
 
+const ALLOWED_RECEIPT_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+const MAX_RECEIPT_BYTES = 5 * 1024 * 1024;
+
+function base64DecodedBytes(value) {
+  if (typeof value !== "string") return 0;
+  const cleaned = value.replace(/\s/g, "");
+  if (!cleaned) return 0;
+  const padding = cleaned.endsWith("==") ? 2 : cleaned.endsWith("=") ? 1 : 0;
+  return Math.floor((cleaned.length * 3) / 4) - padding;
+}
+
 // Scan Receipt
 export async function scanReceipt(fileOrPayload) {
   try {
-    if (!process.env.GEMINI_API_KEY) {
-      throw new Error(
-        "Missing GEMINI_API_KEY. Add it to your environment and restart the server."
-      );
-    }
-
-    // Using Gemini 2.5 Flash - stable v1 API (not v1beta)
-    const genAI = getGemini();
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
 
     // Support both File objects and a base64 payload from the client
     let base64String = "";
@@ -253,6 +264,9 @@ export async function scanReceipt(fileOrPayload) {
       base64String = fileOrPayload.base64;
       mimeType = fileOrPayload.mimeType || mimeType;
     } else if (fileOrPayload && typeof fileOrPayload.arrayBuffer === "function") {
+      if (typeof fileOrPayload.size === "number" && fileOrPayload.size > MAX_RECEIPT_BYTES) {
+        throw new Error("File must be 5 MB or smaller");
+      }
       // Backward compatibility if a File was passed directly
       const arrayBuffer = await fileOrPayload.arrayBuffer();
       base64String = Buffer.from(arrayBuffer).toString("base64");
@@ -262,6 +276,24 @@ export async function scanReceipt(fileOrPayload) {
     } else {
       throw new Error("Invalid input for scanReceipt");
     }
+
+    if (!ALLOWED_RECEIPT_TYPES.has(mimeType)) {
+      throw new Error("Only JPEG, PNG, and WebP images are allowed");
+    }
+
+    if (base64DecodedBytes(base64String) > MAX_RECEIPT_BYTES) {
+      throw new Error("File must be 5 MB or smaller");
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error(
+        "Missing GEMINI_API_KEY. Add it to your environment and restart the server."
+      );
+    }
+
+    // Using Gemini 2.5 Flash - stable v1 API (not v1beta)
+    const genAI = getGemini();
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const prompt = `
       Analyze this receipt image and extract the following information in JSON format:

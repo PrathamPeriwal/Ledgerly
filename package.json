@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest run",
+    "test:smoke": "node scripts/smoke.mjs",
+    "verify": "npm run lint && npm run test && npm run build && npm run test:smoke",
     "email": "email dev",
     "postinstall": "prisma generate"
   },
@@ -53,6 +56,8 @@
     "postcss": "^8",
     "prisma": "^6.0.1",
     "react-email": "^4.2.8",
-    "tailwindcss": "^3.4.1"
+    "tailwindcss": "^3.4.1",
+    "vite": "^7.3.7",
+    "vitest": "^5.0.5"
   }
 }
