@@ -66,8 +66,22 @@
   }
 
   .bg-grid {
-    background-image: linear-gradient(to right, var(--grid-line) 1px, transparent 1px);
-    background-size: 8rem 100%;
+    background-image:
+      linear-gradient(to right, rgb(26 27 28 / 35%) 2px, transparent 2px),
+      linear-gradient(to right, rgb(26 27 28 / 22%) 1px, transparent 1px);
+    background-size: 32rem 100%, 8rem 100%;
+    background-position: var(--grid-shift, 0px) 0;
+    background-repeat: repeat;
+  }
+
+  .bg-grid-square {
+    background-image:
+      linear-gradient(to right, rgb(26 27 28 / 35%) 2px, transparent 2px),
+      linear-gradient(to bottom, rgb(26 27 28 / 35%) 2px, transparent 2px),
+      linear-gradient(to right, rgb(26 27 28 / 22%) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(26 27 28 / 22%) 1px, transparent 1px);
+    background-size: 32rem 32rem, 32rem 32rem, 8rem 8rem, 8rem 8rem;
+    background-repeat: repeat;
   }
 }
 

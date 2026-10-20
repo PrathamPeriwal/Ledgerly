@@ -1,12 +1,12 @@
 "use client";
 
-import { useLayoutEffect } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { motion, useMotionValue, useTransform, type MotionValue } from "motion/react";
 import { cn } from "@/lib/utils";
 import "./fx.css";
 import { useReducedMotionSafe } from "./reduced";
 
-const LINE = "#CBD1D8";
+const DRIFT = 0.65;
 
 export function DiagonalGrid({
   progress,
@@ -15,7 +15,9 @@ export function DiagonalGrid({
   progress: MotionValue<number>;
   className?: string;
 }) {
+  const hostRef = useRef<HTMLDivElement>(null);
   const drift = useMotionValue(1);
+  const range = useMotionValue(0);
   const reduced = useReducedMotionSafe();
 
   useLayoutEffect(() => {
@@ -26,28 +28,29 @@ export function DiagonalGrid({
     return () => media.removeEventListener("change", update);
   }, [drift, reduced]);
 
-  const x = useTransform([progress, drift], ([value, enabled]) => {
-    return Number(value) * -384 * Number(enabled);
-  });
-  const y = useTransform([progress, drift], ([value, enabled]) => {
-    return Number(value) * -384 * Number(enabled);
+  useLayoutEffect(() => {
+    const section = hostRef.current?.closest("section");
+    if (!section) return;
+    const update = () => {
+      range.set(Math.max(section.offsetHeight - window.innerHeight, 0));
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, [range]);
+
+  const backgroundPosition = useTransform([progress, drift, range], ([value, enabled, distance]) => {
+    const shift = -Number(value) * Number(distance) * DRIFT * Number(enabled);
+    return `${shift}px ${shift}px`;
   });
 
   return (
-    <div className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)} aria-hidden>
-      <motion.div
-        className="fx-drift absolute"
-        style={{
-          x,
-          y,
-          top: "-24rem",
-          left: "-24rem",
-          width: "calc(100% + 48rem)",
-          height: "calc(100% + 48rem)",
-          backgroundImage: `linear-gradient(to right, ${LINE} 0.75px, transparent 0.75px), linear-gradient(to bottom, ${LINE} 0.75px, transparent 0.75px)`,
-          backgroundSize: "8rem 8rem",
-        }}
-      />
+    <div
+      ref={hostRef}
+      className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}
+      aria-hidden
+    >
+      <motion.div className="absolute inset-0 bg-grid-square" style={{ backgroundPosition }} />
     </div>
   );
 }

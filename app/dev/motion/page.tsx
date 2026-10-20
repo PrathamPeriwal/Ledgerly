@@ -1,11 +1,10 @@
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { Counter } from "@/components/fx/Counter";
-import { CustomCursor } from "@/components/fx/CustomCursor";
 import { GridBackground } from "@/components/fx/GridBackground";
 import { ContourCurves, HatchFill, RadialHatch, Spiral } from "@/components/fx/LineArt";
 import { Marquee } from "@/components/fx/Marquee";
-import { Amount, PrivacyProvider, PrivacyToggle } from "@/components/fx/Privacy";
+import { Amount, PrivacyToggle } from "@/components/fx/Privacy";
 import { RevealHeading } from "@/components/fx/RevealHeading";
 import { StickyCardStack } from "@/components/fx/StickyCardStack";
 import { TiltedTag } from "@/components/fx/TiltedTag";
@@ -34,7 +33,6 @@ export default function DevMotionPage() {
   if (process.env.NODE_ENV === "production") notFound();
 
   return (
-    <PrivacyProvider>
       <div className="overflow-x-clip bg-[#E3E7EB] text-[#1A1B1C]">
         <div className="pt-16">
           <Marquee
@@ -52,7 +50,7 @@ export default function DevMotionPage() {
         </section>
 
         <section className="relative px-6 py-24">
-          <GridBackground variant="square" className="opacity-80" />
+          <GridBackground variant="square" />
           <RevealHeading className="display relative text-5xl md:text-7xl">
             Effects in motion
           </RevealHeading>
@@ -119,7 +117,5 @@ export default function DevMotionPage() {
           ]}
         />
       </div>
-      <CustomCursor />
-    </PrivacyProvider>
   );
 }

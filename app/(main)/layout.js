@@ -1,12 +1,14 @@
-import React from "react";
+import { ensureUser } from "@/lib/ensure-user";
+import { CommandMenu } from "@/components/command-menu";
 
-const MainLayout = ({ children }) => {
+const MainLayout = async ({ children }) => {
+  await ensureUser();
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto py-24 md:py-32 px-4 sm:px-6 lg:px-8">
-        {children}
-      </div>
-    </div>
+    <>
+      <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">{children}</div>
+      <CommandMenu />
+    </>
   );
 };
 

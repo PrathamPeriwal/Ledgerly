@@ -1,19 +1,4 @@
-import DashboardPage from "./page";
-import { LoadingCard } from "@/components/loading";
-import { Suspense } from "react";
-
-const DashboardSkeleton = () => (
-  <div className="space-y-6">
-    <LoadingCard />
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <LoadingCard />
-      <LoadingCard />
-      <LoadingCard />
-    </div>
-  </div>
-);
-
-export default function Layout() {
+export default function Layout({ children }) {
   return (
     <div className="px-5">
       <div className="flex items-center justify-between mb-8">
@@ -26,10 +11,7 @@ export default function Layout() {
           </p>
         </div>
       </div>
-
-      <Suspense fallback={<DashboardSkeleton />}>
-        <DashboardPage />
-      </Suspense>
+      {children}
     </div>
   );
 }

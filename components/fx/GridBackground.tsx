@@ -1,25 +1,16 @@
 "use client";
 
-import { useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { motion, useMotionValue, useScroll, useTransform } from "motion/react";
 import { cn } from "@/lib/utils";
 import "./fx.css";
 import { useReducedMotionSafe } from "./reduced";
 
-const LINE = "#CBD1D8";
-const TILE = "8rem";
+const DRIFT = 0.65;
 
-export function GridBackground({
-  variant = "vertical",
-  className,
-}: {
-  variant?: "vertical" | "square";
-  className?: string;
-}) {
-  const { scrollYProgress } = useScroll();
+function useDriftEnabled() {
   const drift = useMotionValue(1);
   const reduced = useReducedMotionSafe();
-  const travel = variant === "square" ? -256 : -128;
 
   useLayoutEffect(() => {
     const media = window.matchMedia("(max-width: 767px)");
@@ -29,33 +20,51 @@ export function GridBackground({
     return () => media.removeEventListener("change", update);
   }, [drift, reduced]);
 
-  const x = useTransform([scrollYProgress, drift], ([progress, enabled]) => {
-    return Number(progress) * travel * Number(enabled);
-  });
-  const y = useTransform([scrollYProgress, drift], ([progress, enabled]) => {
-    if (variant !== "square") return 0;
-    return Number(progress) * travel * Number(enabled);
-  });
+  return drift;
+}
 
-  const backgroundImage =
-    variant === "square"
-      ? `linear-gradient(to right, ${LINE} 0.75px, transparent 0.75px), linear-gradient(to bottom, ${LINE} 0.75px, transparent 0.75px)`
-      : `linear-gradient(to right, ${LINE} 1px, transparent 1px)`;
+export function BgGridDrift() {
+  const { scrollY } = useScroll();
+  const drift = useDriftEnabled();
+
+  useEffect(() => {
+    const apply = () => {
+      const shift = -scrollY.get() * DRIFT * drift.get();
+      document.documentElement.style.setProperty("--grid-shift", `${shift}px`);
+    };
+    apply();
+    const unsubY = scrollY.on("change", apply);
+    const unsubD = drift.on("change", apply);
+    return () => {
+      unsubY();
+      unsubD();
+      document.documentElement.style.removeProperty("--grid-shift");
+    };
+  }, [scrollY, drift]);
+
+  return null;
+}
+
+export function GridBackground({
+  variant = "vertical",
+  className,
+}: {
+  variant?: "vertical" | "square";
+  className?: string;
+}) {
+  const { scrollY } = useScroll();
+  const drift = useDriftEnabled();
+  const backgroundPosition = useTransform([scrollY, drift], ([scroll, enabled]) => {
+    const shift = -Number(scroll) * DRIFT * Number(enabled);
+    const y = variant === "square" ? shift : 0;
+    return `${shift}px ${y}px`;
+  });
 
   return (
     <div className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)} aria-hidden>
       <motion.div
-        className="fx-drift absolute"
-        style={{
-          x,
-          y,
-          top: "-16rem",
-          left: "-16rem",
-          width: "calc(100% + 32rem)",
-          height: "calc(100% + 32rem)",
-          backgroundImage,
-          backgroundSize: variant === "square" ? `${TILE} ${TILE}` : `${TILE} 100%`,
-        }}
+        className={cn("absolute inset-0", variant === "square" ? "bg-grid-square" : "bg-grid")}
+        style={{ backgroundPosition }}
       />
     </div>
   );

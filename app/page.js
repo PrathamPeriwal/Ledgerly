@@ -7,6 +7,7 @@ import {
   statsData,
 } from "@/data/landing";
 import HeroSection from "@/components/hero";
+import { SiteFooter } from "@/components/site-footer";
 import Link from "next/link";
 
 const LandingPage = () => {
@@ -143,7 +144,7 @@ const LandingPage = () => {
       </section>
 
       {/* How It Works Section - Simplified */}
-      <section id="how-it-works" className="py-16 md:py-24 bg-gray-100 dark:bg-gray-800">
+      <section id="how" className="py-16 md:py-24 bg-gray-100 dark:bg-gray-800">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 animate-fade-in">
             <h2 className="text-3xl md:text-5xl font-bold mb-6 text-gray-900 dark:text-white">
@@ -228,6 +229,7 @@ const LandingPage = () => {
           </div>
         </div>
       </section>
+      <SiteFooter />
     </div>
   );
 };
