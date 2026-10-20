@@ -1,0 +1,24 @@
+@media (prefers-reduced-motion: reduce) {
+  .fx-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .fx-wipe {
+    clip-path: none !important;
+  }
+
+  .fx-bar {
+    transform: scaleX(0) !important;
+  }
+
+  .fx-drift {
+    transform: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .fx-drift {
+    transform: none !important;
+  }
+}
