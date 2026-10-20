@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
 
 # next.js
 /.next/
@@ -42,3 +44,5 @@ next-env.d.ts
 
 # database snapshots
 backups/
+
+!.env.example

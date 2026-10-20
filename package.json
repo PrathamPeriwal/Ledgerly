@@ -9,6 +9,8 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:smoke": "node scripts/smoke.mjs",
+    "seed:demo": "node scripts/seed-demo.mjs",
+    "test:e2e": "playwright test",
     "verify": "npm run lint && npm run test && npm run build && npm run test:smoke",
     "email": "email dev",
     "postinstall": "prisma generate"
@@ -51,6 +53,8 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@clerk/testing": "^2.2.48",
+    "@playwright/test": "^1.64.1",
     "eslint": "^8",
     "eslint-config-next": "15.0.3",
     "postcss": "^8",
