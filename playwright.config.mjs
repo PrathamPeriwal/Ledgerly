@@ -46,6 +46,12 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
       dependencies: ["setup"],
       testIgnore: [/global\.setup\.js/, /perf[\\/]/],
+      // npm run test:e2e:quick: Maya's dashboard and default account only.
+      ...(process.env.npm_lifecycle_event === "test:e2e:quick"
+        ? {
+            grep: /maya@example.com can open the dashboard|maya default account lists/,
+          }
+        : {}),
     },
     ...(process.env.RUN_PERF
       ? [

@@ -12,9 +12,9 @@ alwaysApply: true
 - Database migrations must be additive only (new indexes, new nullable columns) while main is deployed. Never edit an already-applied migration. No drops or renames.
 - At the end of every phase report: summary, files changed, how I can verify it manually, and known issues.
 
-## Testing
-- You run all tests yourself; I do not test manually. List something under "NEEDS HUMAN" only if it truly cannot be automated (a dashboard setting, a secret you do not have, a visual judgement), with exact steps. Never block the rest of the work on it.
-- Before every phase commit run "npm run verify" (lint, unit tests, build, smoke). Phases that touch pages, data or auth must also run "npm run test:e2e" once it exists.
-- Add or update tests for what each phase changes. Assert behaviour; no snapshot tests of markup.
-- Tests must never write to the database except for demo users (@ledgerly-demo.test), and must restore anything they change. Never run destructive tests against other data.
-- If a test fails, fix the code or the test and re-run. Never delete or skip a test to get green.
+## Testing (lean)
+- Default check before a commit: "npm run check" (lint + typecheck + build). That is enough for UI-only phases; write no new tests for them.
+- Run Vitest only if you changed code covered by tests/. Add unit tests only when a phase changes logic.
+- Run "npm run test:e2e:quick" (Maya only: dashboard and her default account page, fail on page errors or 5xx) only when a phase changes data fetching, auth or routing. Never run the full six-user suite or the perf baseline unless I ask.
+- Tests may write to the database only for demo users and must restore what they change. Never delete or skip a test to get green.
+- Put something under NEEDS HUMAN only if it truly cannot be automated.
