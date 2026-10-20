@@ -1,0 +1,13 @@
+---
+description: Git and safety workflow for the Ledgerly revamp
+alwaysApply: true
+---
+- Work only on the "revamp" branch. Never commit to or push main.
+- One phase = one commit (or a small series) with message "phase <ID>: <summary>". Before committing run lint, the TypeScript check (once TS is set up) and "next build". If anything fails, fix it or report it; do not commit a broken build silently.
+- After each phase commit, create the tag "phase-<ID>" and push the branch and tags if a remote exists.
+- Never run git push --force, git reset --hard, git clean -fd, or rewrite history unless I explicitly ask.
+- Stay inside the scope of the current phase. At the end, list every file you changed.
+- Never print or commit secrets (.env values, API keys, connection strings, passwords).
+- Destructive database operations (migrate reset, truncate, deleteMany over tables, a seed that wipes data) need my explicit confirmation in chat and a fresh backup first. Print the target database host (never credentials) before running them.
+- Database migrations must be additive only (new indexes, new nullable columns) while main is deployed. Never edit an already-applied migration. No drops or renames.
+- At the end of every phase report: summary, files changed, how I can verify it manually, and known issues.
