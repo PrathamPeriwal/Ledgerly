@@ -46,7 +46,7 @@ export default function FeaturesSection() {
             Everything you need to take control of your finances and build wealth for the future.
           </p>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {featuresData.map((feature, index) => (
             <Card key={index} className="glass-card hover-lift">

@@ -111,11 +111,10 @@ export function AccountChart({ transactions }) {
           <div className="text-center">
             <p className="text-muted-foreground">Net</p>
             <p
-              className={`text-lg font-bold ${
-                totals.income - totals.expense >= 0
+              className={`text-lg font-bold ${totals.income - totals.expense >= 0
                   ? "text-green-500"
                   : "text-red-500"
-              }`}
+                }`}
             >
               ${(totals.income - totals.expense).toFixed(2)}
             </p>

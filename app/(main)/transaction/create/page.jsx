@@ -20,12 +20,12 @@ export default async function AddTransactionPage({ searchParams }) {
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 animate-slide-up">
           {editId ? 'Edit Transaction' : 'Add Transaction'}
         </h1>
-        <p className="text-lg text-gray-600 dark:text-gray-300 animate-slide-up" style={{animationDelay: '0.1s'}}>
+        <p className="text-lg text-gray-600 dark:text-gray-300 animate-slide-up" style={{ animationDelay: '0.1s' }}>
           {editId ? 'Update your transaction details' : 'Record a new financial transaction'}
         </p>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 md:p-8 animate-slide-up" style={{animationDelay: '0.2s'}}>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 md:p-8 animate-slide-up" style={{ animationDelay: '0.2s' }}>
         <AddTransactionForm
           accounts={accounts}
           categories={defaultCategories}

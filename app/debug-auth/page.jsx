@@ -24,14 +24,14 @@ export default function DebugAuth() {
     // Clear all browser storage
     localStorage.clear();
     sessionStorage.clear();
-    
+
     // Clear cookies (if possible)
     document.cookie.split(";").forEach((c) => {
       const eqPos = c.indexOf("=");
       const name = eqPos > -1 ? c.substr(0, eqPos) : c;
       document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
     });
-    
+
     // Reload page
     window.location.reload();
   };
@@ -42,7 +42,7 @@ export default function DebugAuth() {
         <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-white">
           Authentication Debug
         </h1>
-        
+
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg space-y-6">
           <div>
             <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
@@ -55,29 +55,29 @@ export default function DebugAuth() {
               <p><strong>Name:</strong> {user?.fullName || "None"}</p>
             </div>
           </div>
-          
+
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
               Debug Actions
             </h2>
-            
-            <Button 
+
+            <Button
               onClick={handleSignOut}
               className="w-full bg-red-600 hover:bg-red-700 text-white"
               disabled={!isSignedIn}
             >
               Force Sign Out
             </Button>
-            
-            <Button 
+
+            <Button
               onClick={clearAllData}
               variant="outline"
               className="w-full border-red-300 text-red-600 hover:bg-red-50"
             >
               Clear All Browser Data & Reload
             </Button>
-            
-            <Button 
+
+            <Button
               onClick={() => window.location.href = "/"}
               variant="outline"
               className="w-full"
@@ -85,7 +85,7 @@ export default function DebugAuth() {
               Go to Home Page
             </Button>
           </div>
-          
+
           <div className="text-xs text-gray-500 dark:text-gray-400 mt-6">
             <p><strong>Note:</strong> This page is for debugging authentication issues.</p>
             <p>Use &quot;Force Sign Out&quot; if you&apos;re stuck in a logged-in state.</p>

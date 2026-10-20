@@ -28,7 +28,7 @@ export default async function AccountPage({ params }) {
           </p>
         </div>
 
-        <div className="text-left sm:text-right animate-slide-up" style={{animationDelay: '0.1s'}}>
+        <div className="text-left sm:text-right animate-slide-up" style={{ animationDelay: '0.1s' }}>
           <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
             ${parseFloat(account.balance).toFixed(2)}
           </div>

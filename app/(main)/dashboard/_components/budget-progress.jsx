@@ -141,7 +141,7 @@ export function BudgetProgress({ initialBudget, currentExpenses }) {
                   : percentUsed >= 75
                     ? "bg-yellow-500"
                     : "bg-green-500"
-              }`}
+                }`}
             />
             <p className="text-xs text-muted-foreground text-right">
               {percentUsed.toFixed(1)}% used

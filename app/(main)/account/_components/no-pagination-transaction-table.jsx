@@ -252,7 +252,7 @@ export function NoPaginationTransactionTable({ transactions }) {
                 <Checkbox
                   checked={
                     selectedIds.length ===
-                      filteredAndSortedTransactions.length &&
+                    filteredAndSortedTransactions.length &&
                     filteredAndSortedTransactions.length > 0
                   }
                   onCheckedChange={handleSelectAll}
@@ -361,7 +361,7 @@ export function NoPaginationTransactionTable({ transactions }) {
                               <RefreshCw className="h-3 w-3" />
                               {
                                 RECURRING_INTERVALS[
-                                  transaction.recurringInterval
+                                transaction.recurringInterval
                                 ]
                               }
                             </Badge>

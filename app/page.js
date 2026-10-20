@@ -39,7 +39,7 @@ const LandingPage = () => {
               </p>
             </div>
 
-            <div className="group p-6 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300 animate-slide-up card-hover" style={{animationDelay: '0.1s'}}>
+            <div className="group p-6 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300 animate-slide-up card-hover" style={{ animationDelay: '0.1s' }}>
               <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 icon-hover animate-pulse-glow">
                 <Zap className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               </div>
@@ -51,7 +51,7 @@ const LandingPage = () => {
               </p>
             </div>
 
-            <div className="group p-6 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-300 animate-slide-up card-hover" style={{animationDelay: '0.2s'}}>
+            <div className="group p-6 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-300 animate-slide-up card-hover" style={{ animationDelay: '0.2s' }}>
               <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 icon-hover animate-pulse-glow">
                 <Globe className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
@@ -182,7 +182,7 @@ const LandingPage = () => {
       <section className="py-16 md:py-24 bg-gray-50 dark:bg-gray-800 relative overflow-hidden">
         {/* Floating background elements */}
         <div className="absolute top-10 left-10 w-20 h-20 bg-blue-200/30 dark:bg-blue-500/20 rounded-full blur-xl animate-float"></div>
-        <div className="absolute bottom-10 right-10 w-24 h-24 bg-purple-200/30 dark:bg-purple-500/20 rounded-full blur-xl animate-float" style={{animationDelay: '1s'}}></div>
+        <div className="absolute bottom-10 right-10 w-24 h-24 bg-purple-200/30 dark:bg-purple-500/20 rounded-full blur-xl animate-float" style={{ animationDelay: '1s' }}></div>
 
         <div className="container mx-auto px-4 text-center relative z-10">
           <div className="max-w-3xl mx-auto animate-fade-in">
@@ -190,11 +190,11 @@ const LandingPage = () => {
               Ready to Transform Your
               <span className="gradient-text"> Finances</span>?
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed animate-slide-up" style={{animationDelay: '0.2s'}}>
+            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed animate-slide-up" style={{ animationDelay: '0.2s' }}>
               Join thousands who are already managing their money smarter with Ledgerly
             </p>
 
-            <div className="flex flex-col sm:flex-row justify-center gap-4 animate-scale-in" style={{animationDelay: '0.4s'}}>
+            <div className="flex flex-col sm:flex-row justify-center gap-4 animate-scale-in" style={{ animationDelay: '0.4s' }}>
               <Link href="/dashboard">
                 <Button size="lg" className="btn-modern bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-blue-500/25 animate-pulse-glow">
                   Get Started Free
@@ -207,7 +207,7 @@ const LandingPage = () => {
             </div>
 
             {/* Trust indicators */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12 opacity-70 animate-fade-in" style={{animationDelay: '0.6s'}}>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12 opacity-70 animate-fade-in" style={{ animationDelay: '0.6s' }}>
               <div className="text-center group">
                 <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300">256-bit</div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">Encryption</div>

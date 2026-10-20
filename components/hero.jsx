@@ -20,11 +20,11 @@ const HeroSection = () => {
 
       {/* Animated floating elements */}
       <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-2xl animate-float"></div>
-      <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-r from-purple-400/20 to-cyan-400/20 rounded-full blur-2xl animate-float" style={{animationDelay: '1s'}}></div>
-      <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 rounded-full blur-2xl animate-float" style={{animationDelay: '2s'}}></div>
+      <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-r from-purple-400/20 to-cyan-400/20 rounded-full blur-2xl animate-float" style={{ animationDelay: '1s' }}></div>
+      <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-gradient-to-r from-cyan-400/20 to-blue-400/20 rounded-full blur-2xl animate-float" style={{ animationDelay: '2s' }}></div>
 
       {/* Geometric shapes */}
-      <div className="absolute top-32 right-1/4 w-16 h-16 border-2 border-blue-300/30 dark:border-blue-500/30 rotate-45 animate-float" style={{animationDelay: '0.5s'}}></div>
+      <div className="absolute top-32 right-1/4 w-16 h-16 border-2 border-blue-300/30 dark:border-blue-500/30 rotate-45 animate-float" style={{ animationDelay: '0.5s' }}></div>
       <div className="absolute bottom-32 left-1/3 w-12 h-12 border-2 border-purple-300/30 dark:border-purple-500/30 rounded-full animate-bounce-gentle"></div>
 
       <div className="container mx-auto text-center px-4 max-w-7xl relative z-10">
@@ -44,21 +44,21 @@ const HeroSection = () => {
 
               {/* Floating particles around title */}
               <div className="absolute -top-4 -left-4 w-3 h-3 bg-blue-500 rounded-full animate-ping"></div>
-              <div className="absolute -top-2 -right-6 w-2 h-2 bg-purple-500 rounded-full animate-ping" style={{animationDelay: '0.5s'}}></div>
-              <div className="absolute -bottom-4 left-1/4 w-2 h-2 bg-cyan-500 rounded-full animate-ping" style={{animationDelay: '1s'}}></div>
-              <div className="absolute -bottom-2 right-1/3 w-3 h-3 bg-green-500 rounded-full animate-ping" style={{animationDelay: '1.5s'}}></div>
+              <div className="absolute -top-2 -right-6 w-2 h-2 bg-purple-500 rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
+              <div className="absolute -bottom-4 left-1/4 w-2 h-2 bg-cyan-500 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
+              <div className="absolute -bottom-2 right-1/3 w-3 h-3 bg-green-500 rounded-full animate-ping" style={{ animationDelay: '1.5s' }}></div>
             </div>
 
-            <div className="flex items-center justify-center gap-2 md:gap-4 mb-6 md:mb-8 animate-slide-up" style={{animationDelay: '0.2s'}}>
+            <div className="flex items-center justify-center gap-2 md:gap-4 mb-6 md:mb-8 animate-slide-up" style={{ animationDelay: '0.2s' }}>
               <div className="h-px bg-gradient-to-r from-transparent via-blue-500 to-transparent w-12 md:w-24 animate-shimmer"></div>
               <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-600 dark:text-gray-300 font-light px-4 md:px-6 py-2 bg-white/50 dark:bg-gray-800/50 rounded-full backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50">
                 Smart Financial Intelligence
               </div>
-              <div className="h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent w-12 md:w-24 animate-shimmer" style={{animationDelay: '1s'}}></div>
+              <div className="h-px bg-gradient-to-r from-transparent via-purple-500 to-transparent w-12 md:w-24 animate-shimmer" style={{ animationDelay: '1s' }}></div>
             </div>
           </div>
 
-          <div className="animate-slide-up" style={{animationDelay: '0.2s'}}>
+          <div className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
             <div className="hero-text text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 md:mb-12 max-w-4xl mx-auto leading-relaxed px-4 sm:px-0">
               Experience the future of financial management with
               <span className="relative inline-block mx-1">
@@ -67,17 +67,17 @@ const HeroSection = () => {
               </span>,
               <span className="relative inline-block mx-1">
                 <span className="text-purple-600 dark:text-purple-400 font-semibold">real-time analytics</span>
-                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-500/30 animate-shimmer" style={{animationDelay: '0.5s'}}></div>
+                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-500/30 animate-shimmer" style={{ animationDelay: '0.5s' }}></div>
               </span>,
               and <span className="relative inline-block mx-1">
                 <span className="text-cyan-600 dark:text-cyan-400 font-semibold">intelligent automation</span>
-                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-cyan-500/30 animate-shimmer" style={{animationDelay: '1s'}}></div>
+                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-cyan-500/30 animate-shimmer" style={{ animationDelay: '1s' }}></div>
               </span> that revolutionizes your financial journey.
             </div>
           </div>
 
           {/* Enhanced CTA buttons */}
-          <div className="flex flex-col sm:flex-row justify-center gap-4 md:gap-6 mb-12 md:mb-20 animate-scale-in px-4 sm:px-0" style={{animationDelay: '0.3s'}}>
+          <div className="flex flex-col sm:flex-row justify-center gap-4 md:gap-6 mb-12 md:mb-20 animate-scale-in px-4 sm:px-0" style={{ animationDelay: '0.3s' }}>
             <Link href="/dashboard">
               <Button size="lg" className="relative group btn-modern px-6 sm:px-8 md:px-10 py-4 md:py-5 text-base md:text-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-2xl overflow-hidden w-full sm:w-auto">
                 <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 animate-shimmer"></div>
@@ -102,7 +102,7 @@ const HeroSection = () => {
         </div>
 
         {/* Interactive Financial Insights Visualization */}
-        <div className="relative max-w-6xl mx-auto animate-slide-up px-4 sm:px-6" style={{animationDelay: '0.8s'}}>
+        <div className="relative max-w-6xl mx-auto animate-slide-up px-4 sm:px-6" style={{ animationDelay: '0.8s' }}>
           <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl md:rounded-3xl shadow-2xl p-6 sm:p-8 md:p-12 border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
 
             {/* AI Insights Header */}
@@ -138,7 +138,7 @@ const HeroSection = () => {
 
                   {/* Progress bar */}
                   <div className="mt-4 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                    <div className="bg-gradient-to-r from-blue-500 to-cyan-500 h-full rounded-full animate-shimmer" style={{width: '68%'}}></div>
+                    <div className="bg-gradient-to-r from-blue-500 to-cyan-500 h-full rounded-full animate-shimmer" style={{ width: '68%' }}></div>
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">68% probability</div>
                 </div>
@@ -162,7 +162,7 @@ const HeroSection = () => {
 
                   {/* Progress bar to match other cards */}
                   <div className="mt-4 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                    <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-full rounded-full animate-shimmer" style={{width: '70%'}}></div>
+                    <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-full rounded-full animate-shimmer" style={{ width: '70%' }}></div>
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">70% efficiency gain</div>
                 </div>
@@ -218,13 +218,13 @@ const HeroSection = () => {
                   <div className="ml-auto text-xs text-green-600 dark:text-green-400 font-medium">High Impact</div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-gray-700/30 rounded-lg animate-slide-left" style={{animationDelay: '0.2s'}}>
+                <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-gray-700/30 rounded-lg animate-slide-left" style={{ animationDelay: '0.2s' }}>
                   <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                   <span className="text-sm text-gray-700 dark:text-gray-300">Optimize subscription spending - potential $45/month savings</span>
                   <div className="ml-auto text-xs text-blue-600 dark:text-blue-400 font-medium">Medium Impact</div>
                 </div>
 
-                <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-gray-700/30 rounded-lg animate-slide-left" style={{animationDelay: '0.4s'}}>
+                <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-gray-700/30 rounded-lg animate-slide-left" style={{ animationDelay: '0.4s' }}>
                   <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
                   <span className="text-sm text-gray-700 dark:text-gray-300">Investment opportunity detected in tech sector ETFs</span>
                   <div className="ml-auto text-xs text-purple-600 dark:text-purple-400 font-medium">Opportunity</div>

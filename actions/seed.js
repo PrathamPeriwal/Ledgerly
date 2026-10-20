@@ -62,9 +62,8 @@ export async function seedTransactions() {
           id: crypto.randomUUID(),
           type,
           amount,
-          description: `${
-            type === "INCOME" ? "Received" : "Paid for"
-          } ${category}`,
+          description: `${type === "INCOME" ? "Received" : "Paid for"
+            } ${category}`,
           date,
           category,
           status: "COMPLETED",
