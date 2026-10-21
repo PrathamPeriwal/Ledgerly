@@ -66,7 +66,7 @@ test.describe("demo dashboards", () => {
       }
 
       if (persona.fresh) {
-        await expect(page.getByText("No budget set")).toBeVisible();
+        await expect(page.getByText("SET A MONTHLY BUDGET")).toBeVisible();
         await expect(page.getByText("% used")).toHaveCount(0);
         const href = await page.getByRole("link", { name: /Main Account/ }).getAttribute("href");
         await page.goto(href);

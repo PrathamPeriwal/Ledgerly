@@ -190,11 +190,11 @@ export function ScanDemo() {
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="overflow-hidden border-b-2 border-[#1A1B1C] last:border-b-0"
               >
-                <div className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
-                  <span className="min-w-0">
-                    <span className="font-num text-xs">{r.date}</span>{" "}
-                    <span className="font-semibold">{r.merchant}</span>{" "}
-                    <span className="label text-[10px]">{r.category}</span>
+                <div className="grid grid-cols-[auto_minmax(0,1.4fr)_minmax(0,0.9fr)_auto] items-center gap-x-3 px-3 py-2 text-sm">
+                  <span className="font-num text-xs">{r.date}</span>
+                  <span className="truncate font-semibold">{r.merchant}</span>
+                  <span className="truncate text-[10px] font-semibold uppercase tracking-wide text-[#5B6068]">
+                    {r.category}
                   </span>
                   <Amount value={r.amount} />
                 </div>

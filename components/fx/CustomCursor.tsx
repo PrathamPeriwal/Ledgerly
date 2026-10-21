@@ -72,16 +72,18 @@ export function CustomCursor() {
           <span className="absolute left-1/2 top-0 h-3 w-px -translate-x-1/2 bg-[#1A1B1C]" />
           <span className="absolute left-0 top-1/2 h-px w-3 -translate-y-1/2 bg-[#1A1B1C]" />
         </motion.div>
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <div className="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2">
           <motion.div
-            className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-[#1A1B1C] bg-[#E3E7EB]/80"
+            className="h-10 w-10 rounded-full border-2 border-[#1A1B1C] bg-transparent"
             animate={{ opacity: label ? 1 : 0, scale: label ? 1 : 0.2 }}
             transition={{ duration: reduced ? 0 : 0.22 }}
+          />
+          <span
+            className="absolute left-full top-full ml-1.5 mt-1 whitespace-nowrap bg-[#1A1B1C] px-1.5 py-1 text-[10px] font-semibold uppercase leading-none tracking-wide text-white"
+            style={{ opacity: label ? 1 : 0 }}
           >
-            <span className="max-w-[48px] truncate text-center text-[9px] font-semibold uppercase leading-none tracking-wide text-[#1A1B1C]">
-              {label}
-            </span>
-          </motion.div>
+            {label}
+          </span>
         </div>
       </div>
     </motion.div>

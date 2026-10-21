@@ -40,7 +40,7 @@ export function SiteFooter() {
       <div className="overflow-hidden bg-[#1A1B1C] text-white" aria-hidden>
         <p
           className="display whitespace-nowrap"
-          style={{ fontSize: "22vw", lineHeight: 0.78, height: "0.58em" }}
+          style={{ fontSize: "22vw", lineHeight: 0.85, height: "0.75em" }}
         >
           LEDGERLY
         </p>

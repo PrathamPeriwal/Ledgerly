@@ -21,9 +21,9 @@ export type StickyCard = {
 };
 
 const PLACES = [
-  { width: "68%", height: "74%", left: "6%", top: "10%" },
-  { width: "56%", height: "62%", left: "36%", top: "28%" },
-  { width: "50%", height: "56%", left: "14%", top: "8%" },
+  { width: "72%", height: "78%", left: "3%", top: "2%" },
+  { width: "66%", height: "64%", left: "20%", top: "28%" },
+  { width: "60%", height: "46%", left: "34%", top: "50%" },
 ];
 
 function place(index: number) {
@@ -55,23 +55,19 @@ function StackCard({
   const box = place(index);
   const span = 1 / total;
   const local = (value: number) => clamp((value - index * span) / span, 0, 1);
-  const after = (value: number) =>
-    index < total - 1 ? clamp((value - (index + 1) * span) / span, 0, 1) : 0;
   const x = useTransform(progress, (value) =>
     index === 0 ? "0vw" : `${(1 - local(value)) * 40}vw`,
   );
   const y = useTransform(progress, (value) =>
     index === 0 ? "0vh" : `${(1 - local(value)) * 120}vh`,
   );
-  const scale = useTransform(progress, (value) => {
-    const base = index === 0 ? 1 : 0.92 + local(value) * 0.08;
-    return base * (1 - after(value) * 0.05);
-  });
-  const dim = useTransform(progress, (value) => after(value) * 0.35);
+  const scale = useTransform(progress, (value) =>
+    index === 0 ? 1 : 0.92 + local(value) * 0.08,
+  );
   return (
     <motion.article
       data-sticky-card="true"
-      className={cn("absolute overflow-hidden border-[3px] border-[#1A1B1C] p-8", card.className)}
+      className={cn("absolute overflow-hidden border-[3px] border-[#1A1B1C] p-6 md:p-8", card.className)}
       style={{
         ...box,
         x,
@@ -83,11 +79,6 @@ function StackCard({
       }}
     >
       {card.content}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[#1A1B1C]"
-        style={{ opacity: dim }}
-      />
     </motion.article>
   );
 }

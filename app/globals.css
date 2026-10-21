@@ -122,3 +122,32 @@
     animation: none;
   }
 }
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #1a1b1c #e3e7eb;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #e3e7eb;
+  border-left: 2px solid #1a1b1c;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1a1b1c;
+  border: 2px solid #e3e7eb;
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ff5f14;
+}
+
+::-webkit-scrollbar-corner {
+  background: #e3e7eb;
+}

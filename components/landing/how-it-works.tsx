@@ -9,7 +9,7 @@ const title = "display text-5xl md:text-6xl";
 
 function ScanCard() {
   return (
-    <div className="grid h-full content-center gap-5 md:grid-cols-2">
+    <div className="grid h-full content-start items-start gap-5 md:grid-cols-2">
       <div>
         <h3 className={title}>SCAN</h3>
         <p className="mt-3 text-lg font-semibold">Take a photo of a receipt. Ledgerly reads it.</p>
@@ -30,7 +30,7 @@ function ScanCard() {
 
 function ReviewCard() {
   return (
-    <div className="grid h-full content-center gap-5 md:grid-cols-2">
+    <div className="grid h-full content-start items-start gap-5 md:grid-cols-2">
       <div>
         <h3 className={title}>REVIEW</h3>
         <p className="mt-3 text-lg font-semibold">Nothing is saved until you confirm.</p>
@@ -58,7 +58,7 @@ function ReviewCard() {
 function TrackCard() {
   const bars = [40, 65, 30, 80, 55, 90, 45];
   return (
-    <div className="grid h-full content-center gap-5 md:grid-cols-2">
+    <div className="grid h-full content-start items-start gap-5 md:grid-cols-2">
       <div>
         <h3 className={title}>TRACK</h3>
         <p className="mt-3 text-lg font-semibold">Budgets, bills and balances in one place.</p>

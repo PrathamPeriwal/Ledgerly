@@ -45,7 +45,7 @@ export function Hero() {
                 <BalanceBadge />
               </div>
             </div>
-            <p className="mt-8 max-w-2xl text-lg md:text-xl">
+            <p className="relative z-10 mt-8 max-w-2xl bg-[#E3E7EB] px-2 py-1 text-lg md:text-xl">
               Ledgerly reads your receipts, files them under the right category and shows what is
               left in your budget. You review everything before it is saved.
             </p>
