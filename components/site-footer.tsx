@@ -10,7 +10,7 @@ export function SiteFooter() {
     <footer>
       <div className="grid border-strong border-border bg-card md:grid-cols-3">
         <div className="flex flex-col justify-between gap-8 border-b-strong border-border p-6 md:border-b-0 md:border-r-strong">
-          <p className="display text-4xl md:text-5xl">Know where it went.</p>
+          <p className="display text-4xl md:text-5xl">Scan. Review. Track.</p>
           <Link
             href="/sign-in"
             data-cursor="GO"

@@ -32,9 +32,9 @@ export function WipeReveal({
   const show = reduced || inView;
 
   return (
+    <div ref={ref} className={className}>
     <motion.div
-      ref={ref}
-      className={cn("fx-wipe", className)}
+      className="fx-wipe h-full"
       initial={{ clipPath: hiddenClip[direction] }}
       animate={{ clipPath: show ? "inset(0 0 0 0)" : hiddenClip[direction] }}
       transition={{
@@ -45,5 +45,6 @@ export function WipeReveal({
     >
       {children}
     </motion.div>
+    </div>
   );
 }

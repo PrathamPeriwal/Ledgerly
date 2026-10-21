@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
+import { motion, useScroll, useSpring, useTransform, type MotionValue } from "motion/react";
 import { cn } from "@/lib/utils";
 import { DiagonalGrid } from "./DiagonalGrid";
 import { RevealGroup } from "./Reveal";
@@ -53,31 +53,21 @@ function StackCard({
   progress: MotionValue<number>;
 }) {
   const box = place(index);
-  const x = useTransform(progress, (value) => {
-    const span = 1 / total;
-    const local = clamp((value - index * span) / span, 0, 1);
-    return (1 - local) * 180;
-  });
-  const y = useTransform(progress, (value) => {
-    const span = 1 / total;
-    const local = clamp((value - index * span) / span, 0, 1);
-    return (1 - local) * 220;
-  });
+  const span = 1 / total;
+  const local = (value: number) => clamp((value - index * span) / span, 0, 1);
+  const after = (value: number) =>
+    index < total - 1 ? clamp((value - (index + 1) * span) / span, 0, 1) : 0;
+  const x = useTransform(progress, (value) =>
+    index === 0 ? "0vw" : `${(1 - local(value)) * 40}vw`,
+  );
+  const y = useTransform(progress, (value) =>
+    index === 0 ? "0vh" : `${(1 - local(value)) * 120}vh`,
+  );
   const scale = useTransform(progress, (value) => {
-    const span = 1 / total;
-    const local = clamp((value - index * span) / span, 0, 1);
-    const next = index < total - 1 ? clamp((value - (index + 1) * span) / span, 0, 1) : 0;
-    return (0.92 + local * 0.08) * (1 - next * 0.06);
+    const base = index === 0 ? 1 : 0.92 + local(value) * 0.08;
+    return base * (1 - after(value) * 0.05);
   });
-  const opacity = useTransform(progress, (value) => {
-    const span = 1 / total;
-    const start = index * span;
-    if (value < start) return 0;
-    const local = clamp((value - start) / span, 0, 1);
-    const next = index < total - 1 ? clamp((value - (index + 1) * span) / span, 0, 1) : 0;
-    return clamp(local / 0.35, 0, 1) * (1 - next * 0.42);
-  });
-
+  const dim = useTransform(progress, (value) => after(value) * 0.35);
   return (
     <motion.article
       data-sticky-card="true"
@@ -87,13 +77,17 @@ function StackCard({
         x,
         y,
         scale,
-        opacity,
         zIndex: index + 1,
         background: FILLS[card.bg].background,
         color: FILLS[card.bg].color,
       }}
     >
       {card.content}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[#1A1B1C]"
+        style={{ opacity: dim }}
+      />
     </motion.article>
   );
 }
@@ -111,6 +105,7 @@ export function StickyCardStack({
     target: ref,
     offset: ["start start", "end end"],
   });
+  const smooth = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.4 });
 
   useLayoutEffect(() => {
     const mobile = window.matchMedia("(max-width: 767px)");
@@ -156,7 +151,7 @@ export function StickyCardStack({
             card={card}
             index={index}
             total={cards.length}
-            progress={scrollYProgress}
+            progress={smooth}
           />
         ))}
       </div>

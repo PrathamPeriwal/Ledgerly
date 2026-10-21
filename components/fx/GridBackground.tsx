@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect } from "react";
-import { motion, useMotionValue, useScroll, useTransform } from "motion/react";
+import { motion, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
 import { cn } from "@/lib/utils";
 import "./fx.css";
 import { useReducedMotionSafe } from "./reduced";
@@ -45,6 +45,8 @@ export function BgGridDrift() {
   return null;
 }
 
+const SPRING = { stiffness: 120, damping: 30, mass: 0.4 };
+
 export function GridBackground({
   variant = "vertical",
   className,
@@ -52,7 +54,8 @@ export function GridBackground({
   variant?: "vertical" | "square";
   className?: string;
 }) {
-  const { scrollY } = useScroll();
+  const { scrollY: rawY } = useScroll();
+  const scrollY = useSpring(rawY, SPRING);
   const drift = useDriftEnabled();
   const backgroundPosition = useTransform([scrollY, drift], ([scroll, enabled]) => {
     const shift = -Number(scroll) * DRIFT * Number(enabled);

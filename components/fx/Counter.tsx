@@ -21,17 +21,22 @@ export function Counter({
   const inView = useInView(ref, { once: true, amount: 0.6 });
   const reduced = useReducedMotionSafe();
   const [text, setText] = useState(() => format(0));
+  const from = useRef(0);
 
   useEffect(() => {
     if (!inView) return;
     if (reduced) {
+      from.current = value;
       setText(format(value));
       return;
     }
-    const controls = animate(0, value, {
+    const controls = animate(from.current, value, {
       duration,
       ease: "easeOut",
-      onUpdate: (latest) => setText(format(latest)),
+      onUpdate: (latest) => {
+        from.current = latest;
+        setText(format(latest));
+      },
     });
     return () => controls.stop();
   }, [duration, format, inView, reduced, value]);

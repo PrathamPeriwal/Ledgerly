@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef } from "react";
-import { motion, useMotionValue, useTransform, type MotionValue } from "motion/react";
+import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from "motion/react";
 import { cn } from "@/lib/utils";
 import "./fx.css";
 import { useReducedMotionSafe } from "./reduced";
@@ -9,12 +9,13 @@ import { useReducedMotionSafe } from "./reduced";
 const DRIFT = 0.65;
 
 export function DiagonalGrid({
-  progress,
+  progress: rawProgress,
   className,
 }: {
   progress: MotionValue<number>;
   className?: string;
 }) {
+  const progress = useSpring(rawProgress, { stiffness: 120, damping: 30, mass: 0.4 });
   const hostRef = useRef<HTMLDivElement>(null);
   const drift = useMotionValue(1);
   const range = useMotionValue(0);
