@@ -85,7 +85,16 @@ describe("POST /api/scan-receipt", () => {
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(RECEIPT);
-    expect(getGenerativeModel).toHaveBeenCalledWith({ model: "gemini-2.5-flash" });
+    const config = getGenerativeModel.mock.calls[0][0];
+    expect(config.model).toBe("gemini-2.5-flash");
+    expect(config.generationConfig.responseMimeType).toBe("application/json");
+    expect(config.generationConfig.responseSchema.properties.category.enum).toEqual(
+      expect.arrayContaining(["groceries", "food", "transportation"])
+    );
+    const prompt = generateContent.mock.calls[0][0][0];
+    expect(prompt).toMatch(/groceries \(Groceries\): supermarkets and grocery stores/);
+    expect(prompt).toMatch(/food \(Food\): restaurants, cafes, takeaway and bars/);
+    expect(prompt).toMatch(/\d{4}-\d{2}-\d{2}/);
     expect(generateContent).toHaveBeenCalledOnce();
   });
 });

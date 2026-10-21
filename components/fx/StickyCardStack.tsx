@@ -5,6 +5,7 @@ import { motion, useScroll, useSpring, useTransform, type MotionValue } from "mo
 import { cn } from "@/lib/utils";
 import { DiagonalGrid } from "./DiagonalGrid";
 import { RevealGroup } from "./Reveal";
+import { dimAmount, enterAmount, gridAmount, sectionHeightVh } from "@/lib/fx/stack-timing";
 
 const INK = "#1A1B1C";
 
@@ -37,10 +38,6 @@ function place(index: number) {
   );
 }
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
-}
-
 function StackCard({
   card,
   index,
@@ -53,17 +50,14 @@ function StackCard({
   progress: MotionValue<number>;
 }) {
   const box = place(index);
-  const span = 1 / total;
-  const local = (value: number) => clamp((value - index * span) / span, 0, 1);
-  const x = useTransform(progress, (value) =>
-    index === 0 ? "0vw" : `${(1 - local(value)) * 40}vw`,
-  );
-  const y = useTransform(progress, (value) =>
-    index === 0 ? "0vh" : `${(1 - local(value)) * 120}vh`,
-  );
-  const scale = useTransform(progress, (value) =>
-    index === 0 ? 1 : 0.92 + local(value) * 0.08,
-  );
+  const x = useTransform(progress, (value) => `${(1 - enterAmount(value, index, total)) * 28}vw`);
+  const y = useTransform(progress, (value) => `${(1 - enterAmount(value, index, total)) * 36}vh`);
+  const scale = useTransform(progress, (value) => {
+    const entered = enterAmount(value, index, total);
+    const dimmed = dimAmount(value, index, total);
+    return (0.94 + entered * 0.06) * (1 - dimmed * 0.06);
+  });
+  const filter = useTransform(progress, (value) => `brightness(${1 - dimAmount(value, index, total) * 0.28})`);
   return (
     <motion.article
       data-sticky-card="true"
@@ -73,6 +67,8 @@ function StackCard({
         x,
         y,
         scale,
+        filter,
+        opacity: 1,
         zIndex: index + 1,
         background: FILLS[card.bg].background,
         color: FILLS[card.bg].color,
@@ -97,6 +93,7 @@ export function StickyCardStack({
     offset: ["start start", "end end"],
   });
   const smooth = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.4 });
+  const grid = useTransform(scrollYProgress, (value) => gridAmount(value, cards.length));
 
   useLayoutEffect(() => {
     const mobile = window.matchMedia("(max-width: 767px)");
@@ -133,9 +130,9 @@ export function StickyCardStack({
   }
 
   return (
-    <section ref={ref} className={className} style={{ height: `${(cards.length + 1) * 100}vh` }}>
+    <section ref={ref} className={className} style={{ height: `${sectionHeightVh(cards.length)}vh` }}>
       <div data-sticky-stage="true" className="sticky top-0 h-screen overflow-hidden bg-[#E3E7EB]">
-        <DiagonalGrid progress={scrollYProgress} />
+        <DiagonalGrid progress={grid} />
         {cards.map((card, index) => (
           <StackCard
             key={index}

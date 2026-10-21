@@ -152,3 +152,38 @@ test("hana can review a scan and save a transaction by hand", async ({ page }) =
   await expect(balance).toContainText(original.match(/-?\$[\d,]+\.\d{2}/)?.[0] ?? original, { timeout: 20000 });
   assertClean(errors);
 });
+
+test("hana category list scrolls without shifting the page", async ({ page }) => {
+  test.setTimeout(90000);
+  const errors = watch(page);
+  await signIn(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/transaction/create", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("form[data-ready='true']")).toBeVisible({ timeout: 20000 });
+  const before = await page.evaluate(() => document.documentElement.clientWidth);
+  await page.getByRole("combobox", { name: "CATEGORY" }).click();
+  const list = page.getByRole("listbox");
+  await expect(list).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.clientWidth)).toBe(before);
+  await list.press("End");
+  const last = list.getByRole("option").last();
+  await expect(last).toBeVisible();
+  const box = await last.boundingBox();
+  const viewport = page.viewportSize();
+  expect(box && viewport && box.y >= 0 && box.y + box.height <= viewport.height + 1).toBe(true);
+  const name = (await last.innerText()).trim();
+  await last.click();
+  await expect(page.getByRole("combobox", { name: "CATEGORY" })).toContainText(name);
+
+  const account = await prisma.user.findUnique({
+    where: { email: "hana@example.com" },
+    select: { accounts: { where: { isDefault: true }, select: { id: true }, take: 1 } },
+  });
+  await page.goto(`/account/${account?.accounts[0]?.id}`, { waitUntil: "domcontentloaded" });
+  await expect(page.locator('[data-testid="tx-row"]:visible').first()).toBeVisible({ timeout: 20000 });
+  const width = await page.evaluate(() => document.documentElement.clientWidth);
+  await page.getByRole("button", { name: "Row actions" }).first().click();
+  await expect(page.getByRole("menuitem", { name: "EDIT" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.clientWidth)).toBe(width);
+  assertClean(errors);
+});

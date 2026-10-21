@@ -124,8 +124,17 @@
 }
 
 html {
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: #1a1b1c #e3e7eb;
+}
+
+body[data-scroll-locked]:not(:has([role="dialog"])):has([role="listbox"]) {
+  overflow: auto !important;
+  overscroll-behavior: auto !important;
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+  pointer-events: auto !important;
 }
 
 ::-webkit-scrollbar {

@@ -60,8 +60,17 @@ describe("mapScanReceipt", () => {
     );
     expect(mapped.amount).toBe("9.75");
     expect(mapped.description).toBe("Corner Market");
-    expect(mapped.category).toBe("other-expense");
+    expect(mapped.category).toBe("groceries");
     expect(mapped.date.getDate()).toBe(now.getDate());
+  });
+
+  it("resolves loose category names", () => {
+    expect(mapScanReceipt({ category: "Grocery" }, now).category).toBe("groceries");
+    expect(mapScanReceipt({ category: "Restaurant" }, now).category).toBe("food");
+    expect(mapScanReceipt({ category: "Food & Drink" }, now).category).toBe("food");
+    expect(mapScanReceipt({ category: "Gas" }, now).category).toBe("transportation");
+    expect(mapScanReceipt({ category: "Pharmacy" }, now).category).toBe("healthcare");
+    expect(mapScanReceipt({ category: "spaceship" }, now).category).toBe("other-expense");
   });
 
   it("turns a junk amount into 0.00", () => {
