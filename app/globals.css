@@ -74,6 +74,15 @@
     background-repeat: repeat;
   }
 
+  .bg-grid-paper {
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 45%) 2px, transparent 2px),
+      linear-gradient(to right, rgb(255 255 255 / 22%) 1px, transparent 1px);
+    background-size: 32rem 100%, 8rem 100%;
+    background-position: var(--grid-shift, 0px) 0;
+    background-repeat: repeat;
+  }
+
   .bg-grid-square {
     background-image:
       linear-gradient(to right, rgb(26 27 28 / 35%) 2px, transparent 2px),
@@ -159,4 +168,9 @@ body[data-scroll-locked]:not(:has([role="dialog"])):has([role="listbox"]) {
 
 ::-webkit-scrollbar-corner {
   background: #e3e7eb;
+}
+
+:focus-visible {
+  outline: 3px solid #ff5f14;
+  outline-offset: 2px;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { HatchFill } from "@/components/fx/LineArt";
+import { EmptyState } from "@/components/empty-state";
 import type { AccountFlowPoint } from "@/lib/types/account";
 
 const CashFlowChart = dynamic(
@@ -13,11 +13,10 @@ export function AccountChartPanel({ points, empty }: { points: AccountFlowPoint[
   return (
     <section className="min-w-0 border-[3px] border-[#1A1B1C] bg-white p-4 md:p-6">
       <h2 className="label">CASH FLOW</h2>
-      <div className="mt-4 h-[220px] w-full md:h-[280px]">
+      <div className={empty ? "mt-4" : "mt-4 h-[220px] w-full md:h-[280px]"}>
         {empty ? (
-          <div data-chart-ready="true" className="flex h-full flex-col items-center justify-center gap-3">
-            <HatchFill size={96} />
-            <p className="label text-center">NO TRANSACTIONS IN THIS RANGE</p>
+          <div data-chart-ready="true">
+            <EmptyState title="NO TRANSACTIONS IN THIS RANGE" />
           </div>
         ) : (
           <CashFlowChart flow={points} />

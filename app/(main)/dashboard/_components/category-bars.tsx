@@ -1,5 +1,5 @@
+import { EmptyState } from "@/components/empty-state";
 import { Amount } from "@/components/fx/Privacy";
-import { HatchFill } from "@/components/fx/LineArt";
 import type { DashboardCategory } from "@/lib/types/dashboard";
 
 export function CategoryBars({ categories }: { categories: DashboardCategory[] }) {
@@ -13,9 +13,8 @@ export function CategoryBars({ categories }: { categories: DashboardCategory[] }
     <section className="min-w-0 border-[3px] border-[#1A1B1C] bg-white p-4 md:p-6">
       <h2 className="label">SPENDING BY CATEGORY</h2>
       {total <= 0 ? (
-        <div className="mt-6 flex flex-col items-start gap-4">
-          <HatchFill size={120} />
-          <p className="display text-3xl">NO EXPENSES THIS MONTH</p>
+        <div className="mt-6">
+          <EmptyState title="NO EXPENSES THIS MONTH" />
         </div>
       ) : (
         <ul className="mt-4 space-y-3">

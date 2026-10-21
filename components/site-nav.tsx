@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { PrivacyToggle } from "@/components/fx/Privacy";
 import { UserMenu } from "@/components/user-menu";
@@ -74,7 +75,7 @@ function NavLinks({ stacked, onNavigate }: { stacked?: boolean; onNavigate?: () 
         <Item href="/sign-in" stacked={stacked} onClick={onNavigate}>
           Login
         </Item>
-        <Item href="/sign-in" tone="orange" stacked={stacked} onClick={onNavigate}>
+        <Item href="/demo" tone="orange" stacked={stacked} onClick={onNavigate}>
           Try the demo
         </Item>
       </SignedOut>
@@ -119,6 +120,15 @@ function NavLinks({ stacked, onNavigate }: { stacked?: boolean; onNavigate?: () 
 
 export function SiteNav() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  if (
+    pathname === "/sign-in" ||
+    pathname.startsWith("/sign-in/") ||
+    pathname === "/sign-up" ||
+    pathname.startsWith("/sign-up/")
+  ) {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-40 flex h-16 w-full border-b-strong border-border bg-card">

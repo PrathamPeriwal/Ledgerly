@@ -8,7 +8,7 @@ export function CtaBand() {
         SEE IT WITH REAL DATA.
       </h2>
       <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-        <Link href="/sign-in" data-cursor="GO" className={btnInk}>
+        <Link href="/demo" data-cursor="GO" className={btnInk}>
           TRY THE DEMO
         </Link>
         <Link href="/sign-in" className={btnWhite}>

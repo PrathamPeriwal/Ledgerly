@@ -23,7 +23,12 @@ export function KpiStrip({
   if (!budget) {
     safe = <p className="display text-2xl sm:text-4xl">NO BUDGET</p>;
   } else if (budget.spent > budget.amount) {
-    safe = <p className="display text-2xl text-[#FF5F14] sm:text-4xl">OVER BUDGET</p>;
+    safe = (
+      <p className="display flex items-center gap-2 text-2xl text-[#1A1B1C] sm:text-4xl">
+        <span aria-hidden className="inline-block h-3 w-3 shrink-0 bg-[#FF5F14]" />
+        OVER BUDGET
+      </p>
+    );
   } else {
     safe = <Amount value={budget.safePerDay} className={figure} />;
   }

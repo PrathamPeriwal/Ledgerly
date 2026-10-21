@@ -43,7 +43,7 @@ export function UserMenu() {
         <button
           type="button"
           aria-label="Account menu"
-          className="flex h-8 w-8 items-center justify-center overflow-hidden bg-[#1A1B1C] text-[11px] font-semibold text-white"
+          className="flex h-10 w-10 items-center justify-center overflow-hidden bg-[#1A1B1C] text-[11px] font-semibold text-white"
         >
           {image ? (
             // Clerk hosts the photo; the kit image config does not allow that host.

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { bulkDeleteTransactions } from "@/actions/account";
+import { EmptyState } from "@/components/empty-state";
 import { Amount } from "@/components/fx/Privacy";
 import type { ComponentType, ReactNode } from "react";
 import { Button as ButtonRoot } from "@/components/ui/button";
@@ -165,21 +166,23 @@ export function TransactionTable({
       <div className={selected.length > 0 ? "pb-24" : undefined}>
         {page.total === 0 ? (
           <div className="p-6">
-            <p className="display text-3xl md:text-5xl">{filtered ? "NO TRANSACTIONS MATCH" : "NO TRANSACTIONS YET"}</p>
-            <div className="mt-6">
-              {filtered ? (
-                <button type="button" className="label h-10 border-[3px] border-[#1A1B1C] bg-white px-3" onClick={clear}>
-                  CLEAR FILTERS
-                </button>
-              ) : (
-                <a
-                  href={`/transaction/create?account=${accountId}`}
-                  className="label inline-flex h-10 items-center border-[3px] border-[#1A1B1C] bg-[#FF5F14] px-3 text-[#1A1B1C]"
-                >
-                  ADD TRANSACTION
-                </a>
-              )}
-            </div>
+            <EmptyState
+              title={filtered ? "NO TRANSACTIONS MATCH" : "NO TRANSACTIONS YET"}
+              action={
+                filtered ? (
+                  <button type="button" className="label h-10 border-[3px] border-[#1A1B1C] bg-white px-3" onClick={clear}>
+                    CLEAR FILTERS
+                  </button>
+                ) : (
+                  <a
+                    href={`/transaction/create?account=${accountId}`}
+                    className="label inline-flex h-10 items-center border-[3px] border-[#1A1B1C] bg-[#FF5F14] px-3 text-[#1A1B1C]"
+                  >
+                    ADD TRANSACTION
+                  </a>
+                )
+              }
+            />
           </div>
         ) : (
           <>

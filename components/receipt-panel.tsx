@@ -156,7 +156,7 @@ export function ReceiptPanel({
               const file = event.dataTransfer.files?.[0];
               if (file) void take(file);
             }}
-            className={`label hidden min-h-64 cursor-pointer items-center justify-center border-[3px] border-dashed px-4 text-center lg:flex ${over ? "border-[#FF5F14] text-[#FF5F14]" : "border-[#1A1B1C]"}`}
+            className={`label hidden min-h-64 cursor-pointer items-center justify-center border-[3px] border-dashed px-4 text-center text-[#1A1B1C] lg:flex ${over ? "border-[#FF5F14]" : "border-[#1A1B1C]"}`}
           >
             DROP A RECEIPT OR CLICK TO UPLOAD
           </label>

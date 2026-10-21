@@ -12,7 +12,7 @@ export function SiteFooter() {
         <div className="flex flex-col justify-between gap-8 border-b-strong border-border p-6 md:border-b-0 md:border-r-strong">
           <p className="display text-4xl md:text-5xl">Scan. Review. Track.</p>
           <Link
-            href="/sign-in"
+            href="/demo"
             data-cursor="GO"
             className="label inline-flex w-fit border-strong border-border bg-primary px-4 py-3 text-primary-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
           >

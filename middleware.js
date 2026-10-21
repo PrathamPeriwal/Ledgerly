@@ -8,6 +8,14 @@ const isProtectedRoute = createRouteMatcher([
   "/transaction(.*)",
 ]);
 
+const isDemoRoute = createRouteMatcher(["/demo", "/api/demo-session"]);
+
+// Headless checks set ARCJET_ENV=development. Live bot rules block that traffic.
+const arcjetMode =
+  process.env.NODE_ENV === "development" || process.env.ARCJET_ENV === "development"
+    ? "DRY_RUN"
+    : "LIVE";
+
 // Create Arcjet middleware
 const aj = arcjet({
   key: process.env.ARCJET_KEY,
@@ -15,10 +23,10 @@ const aj = arcjet({
   rules: [
     // Shield protection for content and security
     shield({
-      mode: "LIVE",
+      mode: arcjetMode,
     }),
     detectBot({
-      mode: "LIVE", // will block requests. Use "DRY_RUN" to log only
+      mode: arcjetMode,
       allow: [
         "CATEGORY:SEARCH_ENGINE", // Google, Bing, etc
         "GO_HTTP", // For Inngest
@@ -32,6 +40,10 @@ const aj = arcjet({
 const clerk = clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
   const url = req.nextUrl;
+
+  if (isDemoRoute(req)) {
+    return NextResponse.next();
+  }
 
   // If user is signed in and trying to access auth pages, redirect to dashboard
   if (userId && (url.pathname === '/sign-in' || url.pathname === '/sign-up')) {
@@ -47,8 +59,12 @@ const clerk = clerkMiddleware(async (auth, req) => {
   return NextResponse.next();
 });
 
-// Chain middlewares - ArcJet runs first, then Clerk
-export default createMiddleware(aj, clerk);
+const shielded = createMiddleware(aj, clerk);
+
+export default function middleware(req, event) {
+  if (isDemoRoute(req) || arcjetMode === "DRY_RUN") return clerk(req, event);
+  return shielded(req, event);
+}
 
 export const config = {
   matcher: [
@@ -59,5 +75,7 @@ export const config = {
     // Include auth routes
     "/sign-in(.*)",
     "/sign-up(.*)",
+    "/demo",
+    "/api/demo-session",
   ],
 };

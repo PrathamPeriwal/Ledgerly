@@ -50,7 +50,7 @@ export function Hero() {
               left in your budget. You review everything before it is saved.
             </p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-              <Link href="/sign-in" data-cursor="GO" className={btnOrange}>
+              <Link href="/demo" data-cursor="GO" className={btnOrange}>
                 TRY THE DEMO
               </Link>
               <a href="#how" className={btnWhite}>

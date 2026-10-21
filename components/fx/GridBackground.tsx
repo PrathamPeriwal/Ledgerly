@@ -50,9 +50,11 @@ const SPRING = { stiffness: 120, damping: 30, mass: 0.4 };
 export function GridBackground({
   variant = "vertical",
   className,
+  lines = "ink",
 }: {
   variant?: "vertical" | "square";
   className?: string;
+  lines?: "ink" | "paper";
 }) {
   const { scrollY: rawY } = useScroll();
   const scrollY = useSpring(rawY, SPRING);
@@ -66,7 +68,10 @@ export function GridBackground({
   return (
     <div className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)} aria-hidden>
       <motion.div
-        className={cn("absolute inset-0", variant === "square" ? "bg-grid-square" : "bg-grid")}
+        className={cn(
+          "absolute inset-0",
+          lines === "paper" ? "bg-grid-paper" : variant === "square" ? "bg-grid-square" : "bg-grid",
+        )}
         style={{ backgroundPosition }}
       />
     </div>

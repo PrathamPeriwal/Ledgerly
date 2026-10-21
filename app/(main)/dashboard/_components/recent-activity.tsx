@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { EmptyState } from "@/components/empty-state";
 import { Amount } from "@/components/fx/Privacy";
 import { formatDateShort } from "@/lib/format";
 import type { DashboardTx } from "@/lib/types/dashboard";
@@ -47,7 +48,9 @@ export function RecentActivity({
         </div>
       </div>
       {rows.length === 0 ? (
-        <p className="label py-8">NO TRANSACTIONS YET</p>
+        <div className="py-8">
+          <EmptyState title="NO TRANSACTIONS YET" />
+        </div>
       ) : (
         <ul data-testid="recent-list" className="mt-4 border-[3px] border-[#1A1B1C]">
           {rows.map((tx) => {

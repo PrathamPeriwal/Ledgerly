@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/empty-state";
 import { Amount } from "@/components/fx/Privacy";
 import { CreateAccountDrawer } from "@/components/create-account-drawer";
 import type { ComponentType, ReactNode } from "react";
@@ -56,14 +57,16 @@ export function AccountGrid({ accounts }: { accounts: DashboardAccount[] }) {
   if (accounts.length === 0) {
     return (
       <section id="accounts" className="scroll-mt-24 border-[3px] border-[#1A1B1C] bg-white p-8">
-        <p className="display text-4xl md:text-6xl">NO ACCOUNTS YET</p>
-        <div className="mt-6">
-          <CreateAccountDrawer>
-            <button type="button" className={addButton}>
-              ADD ACCOUNT
-            </button>
-          </CreateAccountDrawer>
-        </div>
+        <EmptyState
+          title="NO ACCOUNTS YET"
+          action={
+            <CreateAccountDrawer>
+              <button type="button" className={addButton}>
+                ADD ACCOUNT
+              </button>
+            </CreateAccountDrawer>
+          }
+        />
       </section>
     );
   }
