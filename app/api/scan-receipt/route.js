@@ -11,14 +11,6 @@ const ALLOWED_RECEIPT_TYPES = new Set([
 ]);
 const MAX_RECEIPT_BYTES = 5 * 1024 * 1024;
 
-function base64DecodedBytes(value) {
-  if (typeof value !== "string") return 0;
-  const cleaned = value.replace(/\s/g, "");
-  if (!cleaned) return 0;
-  const padding = cleaned.endsWith("==") ? 2 : cleaned.endsWith("=") ? 1 : 0;
-  return Math.floor((cleaned.length * 3) / 4) - padding;
-}
-
 export async function POST(req) {
   try {
     const { userId } = await auth();
@@ -26,9 +18,13 @@ export async function POST(req) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { base64, mimeType = "image/jpeg" } = body;
+    const form = await req.formData();
+    const file = form.get("file");
+    if (!(file instanceof File)) {
+      return NextResponse.json({ error: "Expected a file upload" }, { status: 400 });
+    }
 
+    const mimeType = file.type || "application/octet-stream";
     if (!ALLOWED_RECEIPT_TYPES.has(mimeType)) {
       return NextResponse.json(
         { error: "Only JPEG, PNG, and WebP images are allowed" },
@@ -36,12 +32,14 @@ export async function POST(req) {
       );
     }
 
-    if (base64DecodedBytes(base64) > MAX_RECEIPT_BYTES) {
+    if (file.size > MAX_RECEIPT_BYTES) {
       return NextResponse.json(
         { error: "File must be 5 MB or smaller" },
         { status: 400 }
       );
     }
+
+    const base64 = Buffer.from(await file.arrayBuffer()).toString("base64");
 
     if (!process.env.GEMINI_API_KEY) {
       return NextResponse.json(

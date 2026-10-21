@@ -14,7 +14,7 @@ export function AccountSummarySkeleton() {
 
 export function TransactionsSkeleton() {
   return (
-    <div className="mt-4 space-y-2" aria-hidden>
+    <div className="space-y-2 p-3" aria-hidden>
       {Array.from({ length: 6 }, (_, index) => (
         <div key={index} className="skeleton h-14 border-[3px] border-[#1A1B1C]" />
       ))}

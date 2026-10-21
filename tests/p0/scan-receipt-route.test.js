@@ -25,12 +25,14 @@ const RECEIPT = {
   category: "food",
 };
 
-function request(body) {
-  return new Request("http://localhost/api/scan-receipt", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
-  });
+function request(file) {
+  const body = new FormData();
+  if (file) body.set("file", file);
+  return new Request("http://localhost/api/scan-receipt", { method: "POST", body });
+}
+
+function image(bytes, type) {
+  return new File([bytes], "receipt", { type });
 }
 
 function mockReceiptText() {
@@ -53,9 +55,7 @@ describe("POST /api/scan-receipt", () => {
   it("returns 401 when there is no user", async () => {
     auth.mockResolvedValue({ userId: null });
 
-    const res = await POST(
-      request({ base64: Buffer.from("tiny").toString("base64"), mimeType: "image/png" })
-    );
+    const res = await POST(request(image(Buffer.from("tiny"), "image/png")));
 
     expect(res.status).toBe(401);
     expect(await res.json()).toEqual({ error: "Unauthorized" });
@@ -63,9 +63,7 @@ describe("POST /api/scan-receipt", () => {
   });
 
   it("rejects a mime type outside jpeg, png, and webp", async () => {
-    const res = await POST(
-      request({ base64: Buffer.from("tiny").toString("base64"), mimeType: "image/gif" })
-    );
+    const res = await POST(request(image(Buffer.from("tiny"), "image/gif")));
 
     expect(res.status).toBe(400);
     const body = await res.json();
@@ -74,9 +72,7 @@ describe("POST /api/scan-receipt", () => {
   });
 
   it("rejects a file over 5 MB", async () => {
-    const base64 = Buffer.alloc(5 * 1024 * 1024 + 1, 1).toString("base64");
-
-    const res = await POST(request({ base64, mimeType: "image/jpeg" }));
+    const res = await POST(request(image(Buffer.alloc(5 * 1024 * 1024 + 1), "image/jpeg")));
 
     expect(res.status).toBe(400);
     const body = await res.json();
@@ -85,9 +81,7 @@ describe("POST /api/scan-receipt", () => {
   });
 
   it("returns the parsed receipt JSON for a valid image", async () => {
-    const res = await POST(
-      request({ base64: Buffer.from("tiny").toString("base64"), mimeType: "image/webp" })
-    );
+    const res = await POST(request(image(Buffer.from("tiny"), "image/webp")));
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(RECEIPT);

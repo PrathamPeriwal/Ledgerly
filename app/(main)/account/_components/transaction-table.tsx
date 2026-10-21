@@ -42,7 +42,11 @@ const Checkbox = CheckboxRoot as ComponentType<{
   onCheckedChange: (checked: boolean | "indeterminate") => void;
 }>;
 const DropdownMenu = DropdownMenuRoot as ComponentType<{ children: ReactNode }>;
-const DropdownMenuTrigger = DropdownMenuTriggerRoot as ComponentType<{ className?: string; children: ReactNode }>;
+const DropdownMenuTrigger = DropdownMenuTriggerRoot as ComponentType<{
+  className?: string;
+  "aria-label"?: string;
+  children: ReactNode;
+}>;
 const DropdownMenuContent = DropdownMenuContentRoot as ComponentType<{
   align?: "end";
   className?: string;
@@ -77,7 +81,7 @@ function SortButton({
 }) {
   const active = sort === field;
   return (
-    <button type="button" className="label inline-flex items-center gap-1" onClick={() => onSort(field)}>
+    <button type="button" className="label inline-flex h-5 items-center gap-1 leading-none" onClick={() => onSort(field)}>
       {label}
       {active ? dir === "asc" ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" /> : null}
     </button>
@@ -160,7 +164,7 @@ export function TransactionTable({
     <TooltipProvider>
       <div className={selected.length > 0 ? "pb-24" : undefined}>
         {page.total === 0 ? (
-          <div className="border-[3px] border-[#1A1B1C] bg-white p-8">
+          <div className="p-6">
             <p className="display text-3xl md:text-5xl">{filtered ? "NO TRANSACTIONS MATCH" : "NO TRANSACTIONS YET"}</p>
             <div className="mt-6">
               {filtered ? (
@@ -179,48 +183,54 @@ export function TransactionTable({
           </div>
         ) : (
           <>
-            <div className="mb-3 md:hidden">{sortButtons}</div>
-            <div className="hidden max-w-full overflow-x-auto md:block">
+            <div className="mb-3 px-3 pt-3 md:hidden">{sortButtons}</div>
+            <div className="hidden max-w-full overflow-x-auto px-3 md:block">
               <table className="w-full border-collapse text-left">
                 <thead>
                   <tr className="border-b-[3px] border-[#1A1B1C]">
-                    <th className="w-10 py-2" />
-                    <th className="py-2 pr-3">
+                    <th className="w-10 py-2 align-middle" />
+                    <th className="py-2 pr-3 align-middle">
                       <SortButton label="DATE" field="date" sort={filters.sort} dir={filters.dir} onSort={toggleSort} />
                     </th>
-                    <th className="label py-2 pr-3">DESCRIPTION</th>
-                    <th className="label py-2 pr-3">CATEGORY</th>
-                    <th className="py-2 pr-3">
+                    <th className="py-2 pr-3 align-middle">
+                      <span className="label inline-flex h-5 items-center leading-none">DESCRIPTION</span>
+                    </th>
+                    <th className="py-2 pr-3 align-middle">
+                      <span className="label inline-flex h-5 items-center leading-none">CATEGORY</span>
+                    </th>
+                    <th className="py-2 pr-3 align-middle">
                       <SortButton label="AMOUNT" field="amount" sort={filters.sort} dir={filters.dir} onSort={toggleSort} />
                     </th>
-                    <th className="label py-2 pr-3">RECURRING</th>
-                    <th className="w-12 py-2" />
+                    <th className="py-2 pr-3 align-middle">
+                      <span className="label inline-flex h-5 items-center leading-none">RECURRING</span>
+                    </th>
+                    <th className="w-12 py-2 align-middle" />
                   </tr>
                 </thead>
                 <tbody>
                   {page.rows.map((row) => (
                     <tr key={row.id} data-testid="tx-row" data-type={row.type} className="border-b-2 border-[#1A1B1C]">
-                      <td className="py-3">
+                      <td className="py-3 align-middle">
                         <Checkbox
                           checked={selected.includes(row.id)}
                           aria-label={`Select ${row.description}`}
                           onCheckedChange={(checked) => toggleRow(row.id, checked === true)}
                         />
                       </td>
-                      <td className="whitespace-nowrap py-3 pr-3 font-num text-xs">{formatDateShort(row.date)}</td>
-                      <td className="max-w-[16rem] truncate py-3 pr-3 font-semibold">{row.description}</td>
-                      <td className="py-3 pr-3">
+                      <td className="whitespace-nowrap py-3 pr-3 align-middle font-num text-xs">{formatDateShort(row.date)}</td>
+                      <td className="max-w-[16rem] truncate py-3 pr-3 align-middle font-semibold">{row.description}</td>
+                      <td className="py-3 pr-3 align-middle">
                         <span className="label inline-block border-[2px] border-[#1A1B1C] px-1.5 py-0.5 text-[10px]">
                           {row.category}
                         </span>
                       </td>
-                      <td className="py-3 pr-3">
+                      <td className="py-3 pr-3 align-middle">
                         <Money row={row} />
                       </td>
-                      <td className="py-3 pr-3">
+                      <td className="py-3 pr-3 align-middle">
                         <Recurring row={row} />
                       </td>
-                      <td className="py-3 text-right">
+                      <td className="py-3 text-right align-middle">
                         <RowMenu row={row} onDelete={() => setConfirm([row.id])} />
                       </td>
                     </tr>
@@ -228,7 +238,7 @@ export function TransactionTable({
                 </tbody>
               </table>
             </div>
-            <ul className="space-y-2 md:hidden">
+            <ul className="space-y-2 p-3 md:hidden">
               {page.rows.map((row) => (
                 <li key={row.id} data-testid="tx-row" data-type={row.type} className="border-[3px] border-[#1A1B1C] bg-white p-3">
                   <span className="flex items-center justify-between gap-2">
@@ -253,7 +263,7 @@ export function TransactionTable({
                 </li>
               ))}
             </ul>
-            <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t-[3px] border-[#1A1B1C] p-3">
               <p data-testid="tx-footer" className="font-num text-sm">
                 SHOWING {shown.from.toLocaleString("en-US")}-{shown.to.toLocaleString("en-US")} OF{" "}
                 {page.total.toLocaleString("en-US")}
@@ -317,8 +327,11 @@ function RowMenu({ row, onDelete }: { row: AccountTxRow; onDelete: () => void })
   const router = useRouter();
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="label h-8 border-[3px] border-[#1A1B1C] bg-white px-2 text-[#1A1B1C]">
-        MENU
+      <DropdownMenuTrigger
+        aria-label="Row actions"
+        className="inline-flex h-8 w-8 items-center justify-center border-[2px] border-[#1A1B1C] bg-white font-num text-lg leading-none text-[#1A1B1C]"
+      >
+        ...
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="border-[3px] border-[#1A1B1C]">
         <DropdownMenuItem className="label" onSelect={() => router.push(`/transaction/create?edit=${row.id}`)}>

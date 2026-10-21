@@ -75,12 +75,12 @@ export function CreateAccountDrawer({ children }) {
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{children}</DrawerTrigger>
-      <DrawerContent className="max-h-[90vh] overflow-y-auto">
-        <DrawerHeader>
+      <DrawerContent>
+        <DrawerHeader className="p-0 pb-3 text-center">
           <DrawerTitle className="display text-3xl">CREATE ACCOUNT</DrawerTitle>
         </DrawerHeader>
-        <div className="px-1 pb-2">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
             <div className="space-y-2">
               <label htmlFor="name" className="label">
                 ACCOUNT NAME
@@ -146,7 +146,7 @@ export function CreateAccountDrawer({ children }) {
               />
             </div>
 
-            <div className="flex gap-4 pt-4">
+            <div className="flex gap-3">
               <DrawerClose asChild>
                 <Button type="button" variant="outline" className="label flex-1">
                   CANCEL

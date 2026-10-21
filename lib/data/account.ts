@@ -143,6 +143,37 @@ export async function listAccountNames() {
   });
 }
 
+type TransactionAccountRow = {
+  id: string;
+  name: string;
+  type: "CURRENT" | "SAVINGS";
+  balance: number;
+  isDefault: boolean;
+};
+
+export async function listTransactionAccounts(): Promise<TransactionAccountRow[]> {
+  const user = await ensureUser();
+  if (!user) return [];
+  const rows = await db.account.findMany({
+    where: { userId: user.id },
+    select: { id: true, name: true, type: true, balance: true, isDefault: true },
+    orderBy: { name: "asc" },
+  });
+  return rows.map((row: {
+    id: string;
+    name: string;
+    type: "CURRENT" | "SAVINGS";
+    balance: unknown;
+    isDefault: boolean;
+  }) => ({
+    id: row.id,
+    name: row.name,
+    type: row.type,
+    balance: roundMoney(asNumber(row.balance)),
+    isDefault: row.isDefault,
+  }));
+}
+
 export async function getAccountSummary(id: string, range: AccountParams["range"]): Promise<AccountSummary> {
   const account = await getAccountForUser(id);
   const user = await ensureUser();

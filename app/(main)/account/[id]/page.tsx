@@ -47,13 +47,15 @@ export default async function AccountPage({
           <section className="min-w-0">
             <Reveal>
               <h2 className="display mb-4 text-3xl">TRANSACTIONS</h2>
-              <AccountToolbar />
             </Reveal>
-            <Suspense key={serializeAccountParams(filters)} fallback={<TransactionsSkeleton />}>
-              <div className="mt-4">
-                <AccountTransactions id={account.id} filters={filters} />
+            <div className="border-[3px] border-[#1A1B1C] bg-white">
+              <div className="border-b-[3px] border-[#1A1B1C] p-3">
+                <AccountToolbar />
               </div>
-            </Suspense>
+              <Suspense key={serializeAccountParams(filters)} fallback={<TransactionsSkeleton />}>
+                <AccountTransactions id={account.id} filters={filters} />
+              </Suspense>
+            </div>
           </section>
         </div>
       </div>
