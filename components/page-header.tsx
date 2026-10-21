@@ -11,14 +11,14 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-4 border-b-strong border-border py-6">
+    <div className="flex w-full min-w-0 flex-col gap-4 border-b-strong border-border py-6 md:flex-row md:flex-wrap md:items-end md:justify-between">
       <div className="min-w-0">
         <p className="label text-muted-foreground">{label}</p>
-        <RevealHeading as="h1" className="display text-4xl md:text-6xl">
+        <RevealHeading as="h1" className="display break-words text-4xl md:text-6xl">
           {title}
         </RevealHeading>
       </div>
-      {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+      {actions ? <div className="flex min-w-0 flex-wrap items-center gap-2">{actions}</div> : null}
     </div>
   );
 }

@@ -2,8 +2,9 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { PrivacyToggle } from "@/components/fx/Privacy";
+import { UserMenu } from "@/components/user-menu";
 import {
   Sheet,
   SheetContent,
@@ -11,15 +12,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-
-const userButtonAppearance = {
-  elements: {
-    avatarBox: "h-8 w-8 rounded-none",
-    userButtonTrigger: "rounded-none focus:shadow-none",
-    userButtonPopoverCard: "rounded-none border-[3px] border-[#1A1B1C] shadow-none",
-    userButtonPopoverActionButton: "rounded-none",
-  },
-};
 
 function Item({
   href,
@@ -118,7 +110,7 @@ function NavLinks({ stacked, onNavigate }: { stacked?: boolean; onNavigate?: () 
             stacked ? "border-b-strong py-4" : "h-full border-l-strong",
           )}
         >
-          <UserButton appearance={userButtonAppearance} />
+          <UserMenu />
         </div>
       </SignedIn>
     </>
@@ -138,7 +130,7 @@ export function SiteNav() {
         <span className="display text-xl">Ledgerly</span>
       </Link>
       <div className="flex-1" aria-hidden />
-      <nav className="hidden h-full md:flex">
+      <nav aria-label="Primary" className="hidden h-full md:flex">
         <NavLinks />
       </nav>
       <button

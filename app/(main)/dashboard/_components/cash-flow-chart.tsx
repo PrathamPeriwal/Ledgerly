@@ -11,13 +11,12 @@ import {
   YAxis,
 } from "recharts";
 import { formatCurrency } from "@/lib/format";
-import type { DashboardFlowPoint } from "@/lib/types/dashboard";
 
-function monthTick(value: string) {
-  const [year, month] = value.split("-");
-  const date = new Date(Date.UTC(Number(year), Number(month) - 1, 1));
-  return date.toLocaleString("en-US", { month: "short", timeZone: "UTC" }).toUpperCase();
-}
+export type FlowPoint = {
+  label: string;
+  income: number;
+  expense: number;
+};
 
 function axisMoney(value: number) {
   if (Math.abs(value) >= 1000) return `${Math.round(value / 100) / 10}k`;
@@ -60,15 +59,17 @@ function SquareLegend({ payload }: { payload?: Array<{ value?: string; color?: s
   );
 }
 
-export function CashFlowChart({ flow }: { flow: DashboardFlowPoint[] }) {
+export function CashFlowChart({ flow }: { flow: FlowPoint[] }) {
   const peak = Math.max(0, ...flow.flatMap((point) => [point.income, point.expense]));
   return (
+    <div className="h-full w-full" data-chart-ready="true">
     <ResponsiveContainer width="100%" height="100%">
       <BarChart data={flow} margin={{ top: 8, right: 4, left: 0, bottom: 0 }} barGap={2}>
         <CartesianGrid vertical={false} stroke="#1A1B1C" strokeOpacity={0.2} />
         <XAxis
-          dataKey="month"
-          tickFormatter={monthTick}
+          dataKey="label"
+          interval="preserveStartEnd"
+          minTickGap={16}
           tick={{ fill: "#1A1B1C", fontSize: 10 }}
           axisLine={{ stroke: "#1A1B1C", strokeWidth: 1 }}
           tickLine={false}
@@ -85,7 +86,7 @@ export function CashFlowChart({ flow }: { flow: DashboardFlowPoint[] }) {
           content={(props) => (
             <SquareTooltip
               active={props.active}
-              label={typeof props.label === "string" ? monthTick(props.label) : undefined}
+              label={typeof props.label === "string" ? props.label : undefined}
               payload={props.payload as Array<{ name?: string; value?: number | string; color?: string }>}
             />
           )}
@@ -96,5 +97,6 @@ export function CashFlowChart({ flow }: { flow: DashboardFlowPoint[] }) {
         <Bar dataKey="expense" name="EXPENSE" fill="#FF5F14" radius={0} maxBarSize={28} isAnimationActive={false} />
       </BarChart>
     </ResponsiveContainer>
+    </div>
   );
 }

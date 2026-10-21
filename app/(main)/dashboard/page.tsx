@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
-import { PrivacyToggle } from "@/components/fx/Privacy";
 import { DashboardBody } from "./_components/dashboard-body";
 import { DashboardSkeleton } from "./_components/dashboard-skeleton";
 
@@ -17,12 +16,9 @@ export default function DashboardPage() {
         label="OVERVIEW"
         title="DASHBOARD"
         actions={
-          <>
-            <Link href="/transaction/create" className={addLink}>
-              ADD TRANSACTION
-            </Link>
-            <PrivacyToggle />
-          </>
+          <Link href="/transaction/create" className={addLink}>
+            ADD TRANSACTION
+          </Link>
         }
       />
       <div className="pt-6">

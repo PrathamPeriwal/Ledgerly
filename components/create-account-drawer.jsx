@@ -75,18 +75,15 @@ export function CreateAccountDrawer({ children }) {
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>{children}</DrawerTrigger>
-      <DrawerContent>
+      <DrawerContent className="max-h-[90vh] overflow-y-auto">
         <DrawerHeader>
-          <DrawerTitle>Create New Account</DrawerTitle>
+          <DrawerTitle className="display text-3xl">CREATE ACCOUNT</DrawerTitle>
         </DrawerHeader>
-        <div className="px-4 pb-4">
+        <div className="px-1 pb-2">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <label
-                htmlFor="name"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Account Name
+              <label htmlFor="name" className="label">
+                ACCOUNT NAME
               </label>
               <Input
                 id="name"
@@ -99,11 +96,8 @@ export function CreateAccountDrawer({ children }) {
             </div>
 
             <div className="space-y-2">
-              <label
-                htmlFor="type"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Account Type
+              <label htmlFor="type" className="label">
+                ACCOUNT TYPE
               </label>
               <Select
                 onValueChange={(value) => setValue("type", value)}
@@ -123,11 +117,8 @@ export function CreateAccountDrawer({ children }) {
             </div>
 
             <div className="space-y-2">
-              <label
-                htmlFor="balance"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Initial Balance
+              <label htmlFor="balance" className="label">
+                INITIAL BALANCE
               </label>
               <Input
                 id="balance"
@@ -141,17 +132,12 @@ export function CreateAccountDrawer({ children }) {
               )}
             </div>
 
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <div className="space-y-0.5">
-                <label
-                  htmlFor="isDefault"
-                  className="text-base font-medium cursor-pointer"
-                >
-                  Set as Default
+            <div className="flex items-center justify-between gap-3 border-[3px] border-[#1A1B1C] p-3">
+              <div className="space-y-1">
+                <label htmlFor="isDefault" className="label cursor-pointer">
+                  SET AS DEFAULT
                 </label>
-                <p className="text-sm text-muted-foreground">
-                  This account will be selected by default for transactions
-                </p>
+                <p className="text-sm text-muted-foreground">Selected first when you add a transaction.</p>
               </div>
               <Switch
                 id="isDefault"
@@ -162,22 +148,18 @@ export function CreateAccountDrawer({ children }) {
 
             <div className="flex gap-4 pt-4">
               <DrawerClose asChild>
-                <Button type="button" variant="outline" className="flex-1">
-                  Cancel
+                <Button type="button" variant="outline" className="label flex-1">
+                  CANCEL
                 </Button>
               </DrawerClose>
-              <Button
-                type="submit"
-                className="flex-1"
-                disabled={createAccountLoading}
-              >
+              <Button type="submit" className="label flex-1" disabled={createAccountLoading}>
                 {createAccountLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
+                    CREATING
                   </>
                 ) : (
-                  "Create Account"
+                  "CREATE ACCOUNT"
                 )}
               </Button>
             </div>

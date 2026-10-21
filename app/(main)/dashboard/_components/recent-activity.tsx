@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Amount } from "@/components/fx/Privacy";
-import { formatDate } from "@/lib/format";
+import { formatDateShort } from "@/lib/format";
 import type { DashboardTx } from "@/lib/types/dashboard";
 
 export function RecentActivity({
@@ -56,9 +56,9 @@ export function RecentActivity({
               <li
                 key={tx.id}
                 data-testid="recent-row"
-                className="grid grid-cols-[4.25rem_minmax(0,1fr)_auto] items-center gap-3 border-b-2 border-[#1A1B1C] px-3 py-3 last:border-b-0"
+                className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border-b-2 border-[#1A1B1C] px-3 py-3 last:border-b-0"
               >
-                <span className="font-num text-xs">{formatDate(tx.date)}</span>
+                <span className="whitespace-nowrap font-num text-xs">{formatDateShort(tx.date)}</span>
                 <span className="min-w-0">
                   <span className="block truncate font-semibold">{tx.description}</span>
                   <span className="label text-[10px] text-muted-foreground">{tx.category}</span>

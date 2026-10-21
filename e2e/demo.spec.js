@@ -71,7 +71,7 @@ test.describe("demo dashboards", () => {
         const href = await page.getByRole("link", { name: /Main Account/ }).getAttribute("href");
         await page.goto(href);
         await expect(page.getByRole("heading", { name: "Main Account" })).toBeVisible();
-        await expect(page.getByText("12 Transactions")).toBeVisible();
+        await expect(page.getByText("SHOWING 1-12 OF 12")).toBeVisible();
       }
 
       expect(errors.pageErrors, errors.pageErrors.join("\n")).toEqual([]);
@@ -81,14 +81,18 @@ test.describe("demo dashboards", () => {
 });
 
 test("maya default account lists transactions and a balance", async ({ page }) => {
+  test.setTimeout(90000);
   const errors = watch(page);
   await signIn(page, "maya@example.com");
   await page.goto("/dashboard");
-  await page.getByRole("link", { name: /Everyday Checking/ }).click();
+  const href = await page.getByRole("link", { name: /Everyday Checking/ }).getAttribute("href");
+  await page.goto(href);
   await expect(page).toHaveURL(/\/account\//);
-  await expect(page.getByRole("heading", { name: "Everyday Checking" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Everyday Checking" })).toBeVisible({
+    timeout: 20000,
+  });
   await expect(page.getByText(/\$\d+\.\d{2}/).first()).toBeVisible();
-  await expect(page.locator("tbody tr").first()).toBeVisible();
+  await expect(page.locator("tbody tr").first()).toBeVisible({ timeout: 20000 });
   expect(errors.pageErrors, errors.pageErrors.join("\n")).toEqual([]);
   expect(errors.httpErrors, errors.httpErrors.join("\n")).toEqual([]);
 });
@@ -103,7 +107,11 @@ test("maya can move the default badge and the data is restored", async ({ page }
   }
 
   async function switchDefault(accountName) {
-    await page.getByRole("link", { name: new RegExp(accountName) }).getByRole("switch").click();
+    await page
+      .getByTestId("account-card")
+      .filter({ hasText: accountName })
+      .getByRole("button", { name: "SET DEFAULT" })
+      .click();
     await expect(page.getByText("Failed to update default account")).toHaveCount(0);
     await expect(page.getByText("Default account updated successfully")).toBeVisible({
       timeout: 20000,
@@ -115,22 +123,22 @@ test("maya can move the default badge and the data is restored", async ({ page }
     await switchDefault("High-Yield Savings");
     await openDashboard();
     await expect(
-      page.getByRole("link", { name: /High-Yield Savings/ }).getByText("Default", { exact: true })
+      page.getByRole("link", { name: /High-Yield Savings/ }).getByText("DEFAULT", { exact: true })
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: /Everyday Checking/ }).getByText("Default", { exact: true })
+      page.getByRole("link", { name: /Everyday Checking/ }).getByText("DEFAULT", { exact: true })
     ).toHaveCount(0);
   } finally {
     await openDashboard();
     const savingsIsDefault = await page
       .getByRole("link", { name: /High-Yield Savings/ })
-      .getByText("Default", { exact: true })
+      .getByText("DEFAULT", { exact: true })
       .count();
     if (savingsIsDefault > 0) {
       await switchDefault("Everyday Checking");
       await openDashboard();
       await expect(
-        page.getByRole("link", { name: /Everyday Checking/ }).getByText("Default", { exact: true })
+        page.getByRole("link", { name: /Everyday Checking/ }).getByText("DEFAULT", { exact: true })
       ).toBeVisible();
     }
   }

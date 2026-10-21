@@ -1,15 +1,11 @@
-import { Skeleton } from "@/components/ui/skeleton";
+import { AccountSummarySkeleton, TransactionsSkeleton } from "../_components/skeletons";
 
 export default function Loading() {
   return (
-    <div className="space-y-4">
-      <Skeleton className="h-12 w-64" />
-      <Skeleton className="h-40 w-full" />
-      <div className="grid gap-3">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-      </div>
+    <div className="min-w-0 space-y-6">
+      <div className="skeleton h-24 border-[3px] border-[#1A1B1C]" />
+      <AccountSummarySkeleton />
+      <TransactionsSkeleton />
     </div>
   );
 }

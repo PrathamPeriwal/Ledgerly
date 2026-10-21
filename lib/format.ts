@@ -19,3 +19,13 @@ export function formatDate(date: Date | string | number) {
     day: "numeric",
   }).format(value);
 }
+
+export function formatDateShort(date: Date | string | number) {
+  const value = date instanceof Date ? date : new Date(date);
+  const sameYear = value.getFullYear() === new Date().getFullYear();
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    ...(sameYear ? {} : { year: "numeric" }),
+  }).format(value);
+}
