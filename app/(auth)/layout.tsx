@@ -2,18 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { GridBackground } from "@/components/fx/GridBackground";
 import { RadialHatch } from "@/components/fx/LineArt";
-import { btnOrange } from "@/components/landing/ui";
-
-function DemoCell() {
-  return (
-    <div className="border-[3px] border-[#1A1B1C] bg-white p-4">
-      <p className="label">JUST LOOKING?</p>
-      <Link href="/demo" className={`${btnOrange} mt-4 min-h-10 w-full`}>
-        TRY THE DEMO
-      </Link>
-    </div>
-  );
-}
+import { DemoCell } from "./demo-cell";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
