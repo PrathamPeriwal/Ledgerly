@@ -45,3 +45,8 @@ yarn-error.log*
 backups/
 
 !.env.example
+
+# local notes, not part of the product
+/PROJECT_CONTEXT.md
+/Codebase_Context.md
+/docs/P0-REPORT.md

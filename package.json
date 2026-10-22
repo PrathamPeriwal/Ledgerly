@@ -1,6 +1,7 @@
 {
-  "name": "finance-platform",
+  "name": "ledgerly",
   "version": "0.1.0",
+  "description": "Scan receipts, review them, and see what is left in your budget.",
   "private": true,
   "scripts": {
     "dev": "next dev",

@@ -37,7 +37,15 @@ const rupee = localFont({
   declarations: [{ prop: "unicode-range", value: "U+20B9" }],
 });
 
+const productionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+const metadataBase = new URL(
+  productionHost
+    ? `https://${String(productionHost).replace(/^https?:\/\//, "").replace(/\/$/, "")}`
+    : "http://localhost:3000",
+);
+
 export const metadata = {
+  metadataBase,
   title: {
     default: "Ledgerly",
     template: "%s | Ledgerly",

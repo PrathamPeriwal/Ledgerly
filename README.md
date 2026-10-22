@@ -1,175 +1,105 @@
 # Ledgerly
 
-**AI-Powered Personal Finance Management Platform**
+Scan receipts, review them, and see what is left in your budget.
 
-## 📖 Overview
+## Live demo
 
-Ledgerly is a modern, AI-powered financial management application that helps users track income and expenses, manage budgets, and gain actionable insights through a clean and intuitive interface. It supports smart transaction categorization, recurring payments, and real-time financial analytics to provide clear visibility into spending patterns, while AI-driven receipt scanning automates data entry and reduces manual effort.
+https://ledgerly-finance-one.vercel.app
 
-## ⭐ Key Features
+Click TRY THE DEMO to sign in with sample data; no sign-up needed.
 
-### 💰 Transaction Management
-- Multi-account support with detailed transaction history
-- Real-time balance tracking and transaction flows
-- Advanced filtering and bulk operations
+![Landing](docs/screenshots/landing-hero.png)
 
-### 📊 Budget Management & Insights
-- Set monthly category budgets with alerts
-- AI-generated financial insights (monthly)
-- Automated email reports with analytics
+![How it works](docs/screenshots/landing-how-it-works.png)
 
-### 🧾 Intelligent Receipt Scanning
-- Upload receipts and auto-extract transaction details
-- Google Gemini 2.5 Flash vision model
-- Smart categorization with form auto-population
+![Dashboard](docs/screenshots/dashboard.png)
 
-### 🔄 Automation
-- Automatic recurring transaction detection
-- Scheduled background jobs with Inngest
-- Monthly cron jobs for reports and alerts
+![Account](docs/screenshots/account.png)
 
-### 🔐 Security
-- ArcJet protection (bot detection, DDoS shield)
-- Clerk authentication (OAuth, email/password, MFA)
-- Rate limiting (10 req/hour per user)
+![Receipt review](docs/screenshots/transaction-review.png)
 
-## 🛠️ Tech Stack
+![Dashboard on a phone](docs/screenshots/mobile-dashboard.png)
 
-### Frontend & Framework
-- **Next.js** - React 19 with App Router
-- **React 19** - Modern UI with automatic batching and transitions
-- **TailwindCSS** - Utility-first CSS framework
-- **Radix UI** - Unstyled, accessible component primitives
+## Features
 
-### Backend & Data
-- **PostgreSQL** - Relational database with advanced features
-- **Prisma ORM** - Type-safe ORM with auto-generated migrations
-- **Node.js** - Runtime environment
+- Receipt scanning with a review step before anything is saved
+- Manual entry
+- Multiple accounts
+- One monthly budget with pace
+- Recurring transactions
+- Monthly email reports
+- Privacy mode
+- Command menu
+- Server-side search, filter, and pagination
 
-### AI & Vision
-- **Google Generative AI** - Gemini 2.5 Flash for receipt scanning and insights
-- **Vision API Integration** - Advanced image analysis and data extraction
+## Tech stack
 
-### Authentication & Security
-- **Clerk** - Complete authentication platform (OAuth, email/password, MFA)
-- **ArcJet** - Bot detection, rate limiting, DDoS shield
+Versions below are the ranges declared in `package.json`.
 
-### Automation & Jobs
-- **Inngest** - Background job scheduling and orchestration
-- **Cron Functions** - Scheduled tasks for reports and recurring transactions
+- Next.js 15.4.10, React 19, TypeScript 5.9
+- Tailwind CSS 3.4
+- Prisma 6 and Postgres
+- Clerk 6
+- Arcjet, Inngest 3, Google Gemini, Resend 4
+- Motion 14
+- Vitest 5 and Playwright 1.64
 
-### Email & Notifications
-- **Resend** - Email delivery service
-- **React Email** - JSX-based email templates
+## How it works
 
+1. Clerk handles sign-in. TRY THE DEMO asks `/api/demo-session` for a one-minute ticket and opens Maya's sample ledger.
+2. A receipt image is sent to `/api/scan-receipt`. Gemini fills the form, and you can edit or discard it before save.
+3. Accounts, transactions, and one budget per month are stored in Postgres through Prisma.
+4. Inngest creates due recurring transactions and sends the monthly report with Resend.
+5. The dashboard and each account page load on the server. Search, filters, and pages of 15 run in the query.
 
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js 18+ and npm/yarn
-- PostgreSQL database
-- API Keys:
-  - Google Generative AI key: (https://aistudio.google.com/apikey)
-  - Clerk keys: (https://dashboard.clerk.com)
-  - Resend API key: (https://resend.com)
-  - ArcJet key: (https://arcjet.com)
-
-### Installation
+## Run locally
 
 ```bash
-git clone <repository-url>
-cd ai-finance-platform
-
+git clone https://github.com/PrathamPeriwal/Ledgerly.git
+cd Ledgerly
 npm install
-
-cp .env.example .env.local
-
-npx prisma migrate dev
-
+cp .env.example .env
+npx prisma migrate deploy
 npm run dev
 ```
 
-The application will be available at `http://localhost:3000`
+Open http://localhost:3000. Fill in `.env` first. See [docs/ENV.md](docs/ENV.md).
 
-## 🔑 Environment Variables
+## Environment variables
 
-Create a `.env.local` file with the following variables:
+[docs/ENV.md](docs/ENV.md)
 
-```env
-# Database
-DATABASE_URL="postgresql://user:password@localhost:5432/ledgerly"
-DIRECT_URL="postgresql://user:password@localhost:5432/ledgerly"
+## Scripts
 
-# Clerk Authentication
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
-CLERK_SECRET_KEY="sk_test_..."
-NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
-NEXT_PUBLIC_CLERK_SIGN_UP_URL="/sign-up"
-NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL="/"
-NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL="/"
+| Script | What it does |
+| --- | --- |
+| `npm run check` | Lint, typecheck, and production build |
+| `npm test` | Vitest |
+| `npm run test:e2e:quick` | Playwright: Maya's dashboard and her default account. Fails on page errors or 5xx |
+| `npm run seed:demo` | Resets demo data. **This wipes transactions, budgets, accounts, and users in the database** when you pass `--confirm`. It does not delete Clerk users. Default is a dry run |
 
-# Google Generative AI
-GEMINI_API_KEY="your_gemini_api_key_here"
+## Testing
 
-# Resend Email Service
-RESEND_API_KEY="your_resend_api_key_here"
+Unit tests are Vitest, under `tests/`. Browser tests are Playwright, under `e2e/`. `npm run test:e2e:quick` covers Maya only. `npm run verify` runs lint, Vitest, a production build, and `scripts/smoke.mjs`.
 
-# ArcJet Security
-ARCJET_KEY="your_arcjet_key_here"
-
-# Inngest Background Jobs
-INNGEST_EVENT_KEY="your_inngest_event_key_here"
-INNGEST_SIGNING_KEY="your_inngest_signing_key_here"
-```
-
-## 📁 Project Structure
+## Project structure
 
 ```
-ledgerly/
-├── app/                          # Next.js App Router
-│   ├── (auth)/                   # Authentication pages (sign-in, sign-up)
-│   ├── (main)/                   # Main app pages (dashboard, accounts, transactions)
-│   ├── api/                      # API routes
-│   ├── lib/                      # Application schema
-│   ├── layout.js                 # Root layout
-│   ├── page.js                   # Landing page
-│
-├── actions/                      # Server actions
-│
-├── components/                   # Reusable UI components
-│   ├── ui/                       # Radix UI + Tailwind 
-│
-├── lib/                          # Core utilities & services
-│
-├── hooks/                        # Custom React hooks
-│
-├── prisma/                       # Database
-│
-├── emails/                       # Email templates
-│
-├── data/                         # Static data
-│
-├── public/                       # Static assets
-│
-├── package.json
-├── configuration files
-├── .env.local                    # Environment variables
-└── README.md
+app/          pages, layouts, and route handlers
+components/   shared UI
+actions/      server actions
+lib/          queries, Prisma, email, Inngest
+prisma/       schema and migrations
+emails/       monthly report
+e2e/          Playwright
+tests/        Vitest
+docs/         environment notes and screenshots
 ```
 
-## 📚 Support & Resources
+## Roadmap
 
-- **Documentation**: See inline code comments and JSDoc annotations
-- **Clerk Docs**: https://clerk.com/docs
-- **Google Gemini API**: https://ai.google.dev/gemini-api
-- **Prisma Docs**: https://www.prisma.io/docs
-- **Inngest Docs**: https://www.inngest.com/docs
-- **Next.js Docs**: https://nextjs.org/docs
+Backend performance and structure pass in progress.
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License 
-
----
-
-**Built with ❤️ for better financial management**
+[MIT](LICENSE)
