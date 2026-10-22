@@ -1,104 +1,85 @@
 # Ledgerly
 
-Scan receipts, review them, and see what is left in your budget.
+Ledgerly is a personal finance app that turns receipts into reviewed transactions and shows how much of your monthly budget is left.
 
-## Live demo
+**Live demo:** https://ledgerly-finance-one.vercel.app
+Choose **Try the demo** to explore a pre-filled ledger. No sign-up needed.
 
-https://ledgerly-finance-one.vercel.app
+## Highlights
 
-Click TRY THE DEMO to sign in with sample data; no sign-up needed.
+- **Receipt scanning with review.** Upload a receipt, Gemini extracts the fields, and you confirm or edit them before anything is saved.
+- **Budget pace.** One monthly budget per account, with a clear view of spend against the days remaining.
+- **Multiple accounts** and manual entry for cash or anything a receipt can't cover.
+- **Recurring transactions** created automatically by background jobs.
+- **Monthly email reports** delivered through Resend.
+- **Fast server-side search, filters, and pagination** (15 per page, executed in the database query).
+- **Privacy mode** to mask balances, and a **command menu** for keyboard navigation.
 
-![Landing](docs/screenshots/landing-hero.png)
+## Architecture
 
-![How it works](docs/screenshots/landing-how-it-works.png)
+| Concern | Choice |
+| --- | --- |
+| Framework | Next.js 15 (App Router), React 19, TypeScript |
+| Styling and motion | Tailwind CSS 3.4, Motion |
+| Data | PostgreSQL with Prisma 6 |
+| Authentication | Clerk |
+| Abuse protection | Arcjet rate limiting and bot detection |
+| Background jobs | Inngest (recurring transactions, monthly reports) |
+| AI | Google Gemini for receipt extraction |
+| Email | Resend |
+| Testing | Vitest, Playwright |
 
-![Dashboard](docs/screenshots/dashboard.png)
+### Request flow
 
-![Account](docs/screenshots/account.png)
+1. Clerk authenticates users. The demo button requests a short-lived ticket from `/api/demo-session` and signs into a sample ledger.
+2. A receipt image is posted to `/api/scan-receipt`; Gemini returns structured fields that pre-fill the transaction form.
+3. Accounts, transactions, and budgets are stored in Postgres via Prisma.
+4. Inngest functions create due recurring transactions and send the monthly report.
+5. Dashboard and account pages render on the server, with search and filters applied in the query.
 
-![Receipt review](docs/screenshots/transaction-review.png)
+## Getting started
 
-![Dashboard on a phone](docs/screenshots/mobile-dashboard.png)
-
-## Features
-
-- Receipt scanning with a review step before anything is saved
-- Manual entry
-- Multiple accounts
-- One monthly budget with pace
-- Recurring transactions
-- Monthly email reports
-- Privacy mode
-- Command menu
-- Server-side search, filter, and pagination
-
-## Tech stack
-
-Versions below are the ranges declared in `package.json`.
-
-- Next.js 15.4.10, React 19, TypeScript 5.9
-- Tailwind CSS 3.4
-- Prisma 6 and Postgres
-- Clerk 6
-- Arcjet, Inngest 3, Google Gemini, Resend 4
-- Motion 14
-- Vitest 5 and Playwright 1.64
-
-## How it works
-
-1. Clerk handles sign-in. TRY THE DEMO asks `/api/demo-session` for a one-minute ticket and opens Maya's sample ledger.
-2. A receipt image is sent to `/api/scan-receipt`. Gemini fills the form, and you can edit or discard it before save.
-3. Accounts, transactions, and one budget per month are stored in Postgres through Prisma.
-4. Inngest creates due recurring transactions and sends the monthly report with Resend.
-5. The dashboard and each account page load on the server. Search, filters, and pages of 15 run in the query.
-
-## Run locally
+Requirements: Node.js 18+ and a PostgreSQL database.
 
 ```bash
 git clone https://github.com/PrathamPeriwal/Ledgerly.git
 cd Ledgerly
 npm install
-cp .env.example .env
+cp .env.example .env     # then fill in the values
 npx prisma migrate deploy
 npm run dev
 ```
 
-Open http://localhost:3000. Fill in `.env` first. See [docs/ENV.md](docs/ENV.md).
-
-## Environment variables
-
-[docs/ENV.md](docs/ENV.md)
+Open http://localhost:3000. Every variable is described in [docs/ENV.md](docs/ENV.md).
 
 ## Scripts
 
-| Script | What it does |
+| Script | Purpose |
 | --- | --- |
+| `npm run dev` | Start the development server |
 | `npm run check` | Lint, typecheck, and production build |
-| `npm test` | Vitest |
-| `npm run test:e2e:quick` | Playwright: Maya's dashboard and her default account. Fails on page errors or 5xx |
-| `npm run seed:demo` | Resets demo data. **This wipes transactions, budgets, accounts, and users in the database** when you pass `--confirm`. It does not delete Clerk users. Default is a dry run |
-
-## Testing
-
-Unit tests are Vitest, under `tests/`. Browser tests are Playwright, under `e2e/`. `npm run test:e2e:quick` covers Maya only. `npm run verify` runs lint, Vitest, a production build, and `scripts/smoke.mjs`.
+| `npm test` | Unit tests (Vitest) |
+| `npm run test:e2e:quick` | Playwright smoke test of the demo user's dashboard and account page |
+| `npm run verify` | Lint, unit tests, build, and smoke script |
+| `npm run seed:demo` | Dry run by default. With `--confirm` it **wipes** transactions, budgets, accounts, and users in the target database; it does not delete Clerk users |
 
 ## Project structure
 
 ```
-app/          pages, layouts, and route handlers
+app/          routes, layouts, and route handlers
 components/   shared UI
 actions/      server actions
-lib/          queries, Prisma, email, Inngest
+lib/          queries, Prisma client, email, Inngest
 prisma/       schema and migrations
-emails/       monthly report
-e2e/          Playwright
-tests/        Vitest
-docs/         environment notes and screenshots
+emails/       monthly report template
+e2e/          Playwright tests
+tests/        Vitest tests
+docs/         environment and engineering notes
 ```
 
-## Roadmap
+## Deployment
 
-Backend performance and structure pass in progress.
+Designed for Vercel. Set the variables listed in [docs/ENV.md](docs/ENV.md) (mark secrets as **Sensitive**), run `npx prisma migrate deploy` against the production database, and register `/api/inngest` with Inngest.
 
 ## License
 
