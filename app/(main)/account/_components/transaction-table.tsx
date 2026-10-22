@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { bulkDeleteTransactions } from "@/actions/account";
 import { EmptyState } from "@/components/empty-state";
 import { Amount } from "@/components/fx/Privacy";
+import { useRouteProgress } from "@/components/route-progress";
 import type { ComponentType, ReactNode } from "react";
 import { Button as ButtonRoot } from "@/components/ui/button";
 import { Checkbox as CheckboxRoot } from "@/components/ui/checkbox";
@@ -94,7 +95,7 @@ function Money({ row }: { row: AccountTxRow }) {
   return (
     <span className="inline-flex items-center gap-2 whitespace-nowrap">
       <span className="inline-block h-2.5 w-2.5 shrink-0" style={{ background: expense ? "#FF5F14" : "#1A1B1C" }} />
-      <Amount value={expense ? -Math.abs(row.amount) : Math.abs(row.amount)} sign />
+      <Amount value={expense ? -Math.abs(row.amount) : Math.abs(row.amount)} sign className="text-sm" />
     </span>
   );
 }
@@ -121,7 +122,7 @@ export function TransactionTable({
   page: AccountTxPage;
 }) {
   const router = useRouter();
-  const { patch, clear } = useAccountFilters();
+  const { patch, clear, pending } = useAccountFilters();
   const [selected, setSelected] = useState<string[]>([]);
   const [confirm, setConfirm] = useState<string[] | null>(null);
   const [busy, setBusy] = useState(false);
@@ -186,7 +187,9 @@ export function TransactionTable({
           </div>
         ) : (
           <>
-            <div className="mb-3 px-3 pt-3 md:hidden">{sortButtons}</div>
+            <div className="relative mb-3 px-3 pt-3 md:hidden">{sortButtons}</div>
+            <div className="relative">
+              <div className={pending ? "opacity-60" : undefined}>
             <div className="hidden max-w-full overflow-x-auto px-3 md:block">
               <table className="w-full border-collapse text-left">
                 <thead>
@@ -266,6 +269,9 @@ export function TransactionTable({
                 </li>
               ))}
             </ul>
+              </div>
+              {pending ? <div aria-hidden className="skeleton pointer-events-none absolute inset-0" /> : null}
+            </div>
             <div className="flex flex-wrap items-center justify-between gap-3 border-t-[3px] border-[#1A1B1C] p-3">
               <p data-testid="tx-footer" className="font-num text-sm">
                 SHOWING {shown.from.toLocaleString("en-US")}-{shown.to.toLocaleString("en-US")} OF{" "}
@@ -275,18 +281,18 @@ export function TransactionTable({
                 <button
                   type="button"
                   className="label h-10 border-[3px] border-[#1A1B1C] bg-white px-3 disabled:opacity-40"
-                  disabled={page.page <= 1}
+                  disabled={pending || page.page <= 1}
                   onClick={() => patch({ page: page.page - 1 })}
                 >
-                  PREV
+                  {pending ? "..." : "PREV"}
                 </button>
                 <button
                   type="button"
                   className="label h-10 border-[3px] border-[#1A1B1C] bg-white px-3 disabled:opacity-40"
-                  disabled={page.page >= page.pageCount}
+                  disabled={pending || page.page >= page.pageCount}
                   onClick={() => patch({ page: page.page + 1 })}
                 >
-                  NEXT
+                  {pending ? "..." : "NEXT"}
                 </button>
               </span>
             </div>
@@ -328,6 +334,7 @@ export function TransactionTable({
 
 function RowMenu({ row, onDelete }: { row: AccountTxRow; onDelete: () => void }) {
   const router = useRouter();
+  const { start } = useRouteProgress();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -337,7 +344,13 @@ function RowMenu({ row, onDelete }: { row: AccountTxRow; onDelete: () => void })
         ...
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="border-[3px] border-[#1A1B1C]">
-        <DropdownMenuItem className="label" onSelect={() => router.push(`/transaction/create?edit=${row.id}`)}>
+        <DropdownMenuItem
+          className="label"
+          onSelect={() => {
+            start();
+            router.push(`/transaction/create?edit=${row.id}`);
+          }}
+        >
           EDIT
         </DropdownMenuItem>
         <DropdownMenuItem className="label" onSelect={onDelete}>

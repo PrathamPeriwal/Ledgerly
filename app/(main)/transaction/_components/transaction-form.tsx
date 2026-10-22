@@ -43,6 +43,7 @@ const Switch = SwitchRoot as Kit;
 import { defaultCategories } from "@/data/categories";
 import useFetch from "@/hooks/use-fetch";
 import { formatCurrency } from "@/lib/format";
+import { useRouteProgress } from "@/components/route-progress";
 import type { MappedScan } from "@/lib/scan-mapping";
 import { cn } from "@/lib/utils";
 
@@ -145,6 +146,7 @@ export function TransactionForm({
   defaultAccountId: string;
 }) {
   const router = useRouter();
+  const { start } = useRouteProgress();
   const editMode = Boolean(editId && initial);
   const [scanning, setScanning] = useState(false);
   const [ready, setReady] = useState(false);
@@ -205,9 +207,10 @@ export function TransactionForm({
     if (result?.success && result.data?.accountId && !saving) {
       toast.success("TRANSACTION SAVED");
       reset();
+      start();
       router.push(`/account/${result.data.accountId}`);
     }
-  }, [result, saving, reset, router]);
+  }, [result, saving, reset, router, start]);
 
   function drop(field: AiField) {
     setFilled((current) => {
@@ -269,6 +272,7 @@ export function TransactionForm({
     <form
       onSubmit={handleSubmit(onSubmit)}
       onKeyDown={(event) => {
+        if (typeof event.key !== "string") return;
         if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
           event.preventDefault();
           void handleSubmit(onSubmit)();

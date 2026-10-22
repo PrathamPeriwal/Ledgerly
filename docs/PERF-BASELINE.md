@@ -17,3 +17,5 @@ Measured on 21 Oct 2026, 02:21 IST (20 Oct 2026, 20:51 UTC) from this machine ag
 | Maya | / | 43 | 1808 | 1949 | 2040 | 407755 | 24 |
 | Maya | /dashboard | 43 | 6849 | 6850 | 1708 | 588957 | 34 |
 | Maya | /account/5cde5450-416e-4786-a01f-ce587acda435 | 43 | 4185 | 4512 | 4472 | 562677 | 28 |
+
+Demo data was rescaled by 25 for rupees after the baseline; transaction counts are unchanged.

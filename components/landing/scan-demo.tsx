@@ -10,24 +10,24 @@ import { BudgetMeter } from "./meter";
 import { setBalance, START_BALANCE } from "./balance-store";
 import { btnOrange } from "./ui";
 
-const BUDGET = 1200;
-const START_SPENT = 640;
+const BUDGET = 30000;
+const START_SPENT = 16000;
 const PACE = 55;
 const DATE = "OCT 21, 2026";
 
 const SAMPLES = [
-  { merchant: "Corner Market", amount: 42.18, category: "Groceries", bars: [70, 55, 62, 48] },
-  { merchant: "Metro Transit", amount: 18.5, category: "Transport", bars: [58, 40, 66, 52] },
-  { merchant: "Blue Door Cafe", amount: 9.75, category: "Dining", bars: [64, 72, 45, 56] },
+  { merchant: "Corner Market", amount: 1054.5, category: "Groceries", bars: [70, 55, 62, 48] },
+  { merchant: "Metro Transit", amount: 462.5, category: "Transport", bars: [58, 40, 66, 52] },
+  { merchant: "Blue Door Cafe", amount: 243.75, category: "Dining", bars: [64, 72, 45, 56] },
 ] as const;
 
 type Phase = "idle" | "scanning" | "filling" | "ready" | "saved";
 type Row = { id: number; date: string; merchant: string; category: string; amount: number; fresh?: boolean };
 
 const SEED: Row[] = [
-  { id: -3, date: "OCT 18", merchant: "Greenline Utilities", category: "Utilities", amount: -96.4 },
-  { id: -2, date: "OCT 15", merchant: "Payroll", category: "Salary", amount: 3200 },
-  { id: -1, date: "OCT 12", merchant: "City Pharmacy", category: "Health", amount: -23.6 },
+  { id: -3, date: "OCT 18", merchant: "Greenline Utilities", category: "Utilities", amount: -2410 },
+  { id: -2, date: "OCT 15", merchant: "Payroll", category: "Salary", amount: 80000 },
+  { id: -1, date: "OCT 12", merchant: "City Pharmacy", category: "Health", amount: -590 },
 ];
 
 const STATUS: Record<Phase, string> = {

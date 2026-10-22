@@ -55,7 +55,7 @@ export function BudgetPanel({ budget }: { budget: DashboardBudget | null }) {
         <div>
           <h2 className="label">{budget ? "MONTHLY BUDGET" : "SET A MONTHLY BUDGET"}</h2>
           {budget ? (
-            <p className="mt-2 text-lg">
+            <p className="mt-2 min-w-0 break-words font-num text-base sm:text-lg">
               <Amount value={budget.spent} />
               <span className="px-1">/</span>
               <Amount value={budget.amount} />
@@ -74,7 +74,7 @@ export function BudgetPanel({ budget }: { budget: DashboardBudget | null }) {
               disabled={loading}
               onChange={(event) => setDraft(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === "Enter") void saveBudget();
+                if (typeof event.key === "string" && event.key === "Enter") void saveBudget();
               }}
               className={field}
             />

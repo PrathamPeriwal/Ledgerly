@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { formatCurrency } from "@/lib/format";
+import { formatCompactCurrency, formatCurrency } from "@/lib/format";
 
 export type FlowPoint = {
   label: string;
@@ -19,8 +19,7 @@ export type FlowPoint = {
 };
 
 function axisMoney(value: number) {
-  if (Math.abs(value) >= 1000) return `${Math.round(value / 100) / 10}k`;
-  return String(Math.round(value));
+  return formatCompactCurrency(value);
 }
 
 function SquareTooltip({
@@ -77,7 +76,7 @@ export function CashFlowChart({ flow }: { flow: FlowPoint[] }) {
         <YAxis
           domain={[0, peak > 0 ? peak : 1]}
           tickFormatter={axisMoney}
-          width={40}
+          width={64}
           tick={{ fill: "#1A1B1C", fontSize: 10 }}
           axisLine={{ stroke: "#1A1B1C", strokeWidth: 1 }}
           tickLine={false}

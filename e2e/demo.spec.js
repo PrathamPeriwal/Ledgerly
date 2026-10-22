@@ -91,7 +91,7 @@ test("maya default account lists transactions and a balance", async ({ page }) =
   await expect(page.getByRole("heading", { name: "Everyday Checking" })).toBeVisible({
     timeout: 20000,
   });
-  await expect(page.getByText(/\$\d+\.\d{2}/).first()).toBeVisible();
+  await expect(page.getByText(/₹[\d,]+\.\d{2}/).first()).toBeVisible();
   await expect(page.locator("tbody tr").first()).toBeVisible({ timeout: 20000 });
   expect(errors.pageErrors, errors.pageErrors.join("\n")).toEqual([]);
   expect(errors.httpErrors, errors.httpErrors.join("\n")).toEqual([]);

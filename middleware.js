@@ -2,77 +2,153 @@ import arcjet, { createMiddleware, detectBot, shield } from "@arcjet/next";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-const isProtectedRoute = createRouteMatcher([
-  "/dashboard(.*)",
-  "/account(.*)",
-  "/transaction(.*)",
-]);
-
+const isProtectedRoute = createRouteMatcher(["/dashboard(.*)", "/account(.*)", "/transaction(.*)"]);
 const isDemoRoute = createRouteMatcher(["/demo", "/api/demo-session"]);
 
-// Headless checks set ARCJET_ENV=development. Live bot rules block that traffic.
 const arcjetMode =
-  process.env.NODE_ENV === "development" || process.env.ARCJET_ENV === "development"
-    ? "DRY_RUN"
-    : "LIVE";
+  process.env.NODE_ENV === "development" || process.env.ARCJET_ENV === "development" ? "DRY_RUN" : "LIVE";
 
-// Create Arcjet middleware
 const aj = arcjet({
   key: process.env.ARCJET_KEY,
-  // characteristics: ["userId"], // Track based on Clerk userId
   rules: [
-    // Shield protection for content and security
-    shield({
-      mode: arcjetMode,
-    }),
+    shield({ mode: arcjetMode }),
     detectBot({
       mode: arcjetMode,
-      allow: [
-        "CATEGORY:SEARCH_ENGINE", // Google, Bing, etc
-        "GO_HTTP", // For Inngest
-        // See the full list at https://arcjet.com/bot-list
-      ],
+      allow: ["CATEGORY:SEARCH_ENGINE", "GO_HTTP"],
     }),
   ],
 });
 
-// Create base Clerk middleware
+function isAuthPath(pathname) {
+  return (
+    pathname === "/sign-in" ||
+    pathname.startsWith("/sign-in/") ||
+    pathname === "/sign-up" ||
+    pathname.startsWith("/sign-up/")
+  );
+}
+
+function cleanAppUrl(url) {
+  const next = new URL(url.pathname, url.origin);
+  for (const [key, value] of url.searchParams) {
+    if (key === "redirect_url" || key.startsWith("__clerk")) continue;
+    next.searchParams.append(key, value);
+  }
+  if (isAuthPath(next.pathname)) return new URL("/dashboard", url.origin);
+  return next;
+}
+
+function unwrapReturn(value, origin) {
+  let current = value;
+  for (let i = 0; i < 5; i += 1) {
+    let parsed;
+    try {
+      parsed = new URL(current, origin);
+    } catch {
+      return "/dashboard";
+    }
+    const inner = parsed.searchParams.get("redirect_url");
+    if (inner && (isAuthPath(parsed.pathname) || current.includes("redirect_url=") || current.includes("__clerk"))) {
+      current = inner;
+      continue;
+    }
+    const clean = cleanAppUrl(parsed);
+    return `${clean.pathname}${clean.search}`;
+  }
+  return "/dashboard";
+}
+
+function sanitize(req) {
+  const url = req.nextUrl.clone();
+  const size = url.pathname.length + url.search.length;
+  const redirect = url.searchParams.get("redirect_url");
+  if (size <= 1800 && !redirect) return null;
+
+  if (size > 1800) {
+    if (isAuthPath(url.pathname)) {
+      const back = redirect ? unwrapReturn(redirect, url.origin) : "";
+      const clean = new URL(url.pathname, url.origin);
+      if (back && !isAuthPath(new URL(back, url.origin).pathname)) clean.searchParams.set("redirect_url", back);
+      return NextResponse.redirect(clean);
+    }
+    return NextResponse.redirect(cleanAppUrl(url));
+  }
+
+  const back = unwrapReturn(redirect, url.origin);
+  const parsed = new URL(back, url.origin);
+  const short = `${parsed.pathname}${parsed.search}`;
+  let already = redirect === short;
+  if (!already) {
+    try {
+      const given = new URL(redirect, url.origin);
+      already =
+        `${given.pathname}${given.search}` === short &&
+        !given.searchParams.has("redirect_url") &&
+        ![...given.searchParams.keys()].some((key) => key.startsWith("__clerk"));
+    } catch {
+      already = false;
+    }
+  }
+  if (isAuthPath(url.pathname)) {
+    if (isAuthPath(parsed.pathname)) {
+      url.searchParams.delete("redirect_url");
+      return NextResponse.redirect(url);
+    }
+    if (!already) {
+      url.searchParams.set("redirect_url", short);
+      return NextResponse.redirect(url);
+    }
+    return null;
+  }
+
+  if (redirect.includes("redirect_url=") || redirect.includes("__clerk")) {
+    url.searchParams.delete("redirect_url");
+    return NextResponse.redirect(url);
+  }
+  return null;
+}
+
 const clerk = clerkMiddleware(async (auth, req) => {
-  const { userId } = await auth();
-  const url = req.nextUrl;
+  if (isDemoRoute(req)) return NextResponse.next();
 
-  if (isDemoRoute(req)) {
-    return NextResponse.next();
+  const { userId, redirectToSignIn } = await auth();
+  const path = req.nextUrl.pathname;
+
+  if (userId && (path === "/sign-in" || path === "/sign-up")) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  // If user is signed in and trying to access auth pages, redirect to dashboard
-  if (userId && (url.pathname === '/sign-in' || url.pathname === '/sign-up')) {
-    return NextResponse.redirect(new URL('/dashboard', req.url));
+  if (!isProtectedRoute(req)) return NextResponse.next();
+  if (userId) {
+    const res = NextResponse.next();
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   }
 
-  // If user is not signed in and trying to access protected routes, redirect to sign-in
-  if (!userId && isProtectedRoute(req)) {
-    const { redirectToSignIn } = await auth();
-    return redirectToSignIn();
-  }
-
-  return NextResponse.next();
+  const back = cleanAppUrl(req.nextUrl);
+  const res = redirectToSignIn({ returnBackUrl: back.href });
+  res.headers.set("Cache-Control", "no-store");
+  return res;
 });
 
 const shielded = createMiddleware(aj, clerk);
 
-export default function middleware(req, event) {
-  if (isDemoRoute(req) || arcjetMode === "DRY_RUN") return clerk(req, event);
-  return shielded(req, event);
+export default async function middleware(req, event) {
+  const cleaned = sanitize(req);
+  if (cleaned) {
+    cleaned.headers.set("Cache-Control", "no-store");
+    return cleaned;
+  }
+  const run = isDemoRoute(req) || arcjetMode === "DRY_RUN" ? clerk : shielded;
+  const res = await run(req, event);
+  if (res && isProtectedRoute(req)) res.headers.set("Cache-Control", "no-store");
+  return res;
 }
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
     "/(api|trpc)(.*)",
-    // Include auth routes
     "/sign-in(.*)",
     "/sign-up(.*)",
     "/demo",

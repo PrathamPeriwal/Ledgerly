@@ -5,7 +5,7 @@ import type { AccountParams } from "@/lib/types/account";
 import { AccountChartPanel } from "./chart-panel";
 import { RangeTabs } from "./filters";
 
-const figure = "text-xl font-bold leading-none tracking-tight sm:text-2xl lg:text-[2rem]";
+const figure = "block min-w-0 break-words text-lg font-bold leading-tight tracking-tight sm:text-xl lg:text-2xl";
 
 export async function AccountSummary({
   id,

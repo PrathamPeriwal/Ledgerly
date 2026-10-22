@@ -71,7 +71,7 @@ export function RecentActivity({
                     className="inline-block h-2 w-2 shrink-0"
                     style={{ background: expense ? "#FF5F14" : "#1A1B1C" }}
                   />
-                  <Amount value={expense ? -Math.abs(tx.amount) : Math.abs(tx.amount)} sign />
+                  <Amount value={expense ? -Math.abs(tx.amount) : Math.abs(tx.amount)} sign className="text-xs sm:text-sm" />
                 </span>
               </li>
             );

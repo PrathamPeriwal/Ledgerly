@@ -117,6 +117,7 @@ export async function POST(req) {
     const prompt = `
 Today is ${today}.
 Read this receipt and return amount, date, description, merchantName, and category.
+The amount is the receipt total in Indian rupees.
 date is YYYY-MM-DD. Return null for date when the receipt shows none.
 category must be one of these ids:
 ${categoryGuide()}

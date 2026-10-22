@@ -26,8 +26,15 @@ const TARGETS = {
   omar: 3000,
   hana: 12,
 };
-const DANIEL_OCTOBER_CENTS = 252000; // 90% of $2,800
-const PRIYA_OCTOBER_CENTS = 138000; // 115% of $1,200
+const AMOUNT_SCALE = 25;
+
+function scaleCents(cents) {
+  const rupees = (cents / 100) * AMOUNT_SCALE;
+  return Math.round((Math.round(rupees * 2) / 2) * 100);
+}
+
+const DANIEL_OCTOBER_CENTS = scaleCents(252000); // 90% of the 2,800 budget, scaled to rupees
+const PRIYA_OCTOBER_CENTS = scaleCents(138000); // 115% of the 1,200 budget, scaled to rupees
 
 const KNOWN_ARGS = new Set(["--confirm", "--allow-live"]);
 
@@ -157,25 +164,29 @@ function randomInt(rand, min, max) {
 }
 
 function dollarsToCents(value) {
-  return Math.round(value * 100);
+  return scaleCents(Math.round(value * 100));
+}
+
+function snapHalfRupee(cents) {
+  return Math.max(50, Math.round(cents / 50) * 50);
 }
 
 function betweenCents(rand, minDollars, maxDollars) {
-  return randomInt(rand, dollarsToCents(minDollars), dollarsToCents(maxDollars));
+  return snapHalfRupee(randomInt(rand, dollarsToCents(minDollars), dollarsToCents(maxDollars)));
 }
 
 function biasedLowCents(rand, minDollars, maxDollars) {
   const min = dollarsToCents(minDollars);
   const max = dollarsToCents(maxDollars);
   const skewed = rand() ** 3;
-  return min + Math.floor(skewed * (max - min + 1));
+  return snapHalfRupee(min + Math.floor(skewed * (max - min + 1)));
 }
 
 function biasedHighCents(rand, minDollars, maxDollars) {
   const min = dollarsToCents(minDollars);
   const max = dollarsToCents(maxDollars);
   const skewed = 1 - (1 - rand()) ** 2;
-  return min + Math.floor(skewed * (max - min + 1));
+  return snapHalfRupee(min + Math.floor(skewed * (max - min + 1)));
 }
 
 function pick(rand, list) {
@@ -183,11 +194,12 @@ function pick(rand, list) {
 }
 
 function money(cents) {
-  const sign = cents < 0 ? "-" : "";
-  const abs = Math.abs(cents);
-  const dollars = Math.floor(abs / 100).toLocaleString("en-US");
-  const rem = String(abs % 100).padStart(2, "0");
-  return `${sign}$${dollars}.${rem}`;
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
 }
 
 function dayStamp(date) {
@@ -400,7 +412,7 @@ function fitOctober(persona, accountKey, targetCents, now) {
     );
     for (const entry of adjustable) {
       if (delta === 0) break;
-      const floor = entry.minCents ?? 100;
+      const floor = entry.minCents ?? scaleCents(100);
       const cut = Math.min(entry.amountCents - floor, -delta);
       if (cut > 0) {
         entry.amountCents -= cut;
@@ -1347,8 +1359,8 @@ function printPlan(personas, now, meta) {
   console.log("Notes");
   console.log("  Recurring templates are the latest occurrence. Earlier months are \"<Name> (Recurring)\" rows.");
   console.log("  Weekly payroll is a completed row every Friday, funded by a transfer. Cafe rent is the MONTHLY template.");
-  console.log("  Daniel's Business Checking October expenses are 90% of his $2,800 budget.");
-  console.log("  Priya's October expenses are 115% of her $1,200 budget.");
+  console.log("  Daniel's Business Checking October expenses are 90% of his ₹70,000.00 budget.");
+  console.log("  Priya's October expenses are 115% of her ₹30,000.00 budget.");
   console.log("  Those two totals stay put for the whole local day: nothing that counts is dated on the 1st.");
   console.log("  --confirm replaces every application row. It does not delete Clerk users.");
 }

@@ -29,7 +29,7 @@ test("maya sees the dashboard overview and can hide amounts", async ({ page }) =
 
   await expect(page.getByTestId("kpi")).toHaveCount(4);
   await expect(page.getByTestId("account-card")).toHaveCount(2);
-  await expect(page.getByTestId("budget-panel")).toContainText("$3,600.00");
+  await expect(page.getByTestId("budget-panel")).toContainText("₹90,000.00");
   await expect(page.getByTestId("recent-row")).toHaveCount(5);
 
   const list = page.getByTestId("recent-list");
@@ -40,6 +40,12 @@ test("maya sees the dashboard overview and can hide amounts", async ({ page }) =
     .not.toBe(before);
   await expect(page.getByTestId("recent-row")).toHaveCount(5);
 
+  await page.getByRole("button", { name: "HIDE" }).click();
+  const amount = page.getByText("₹90,000.00", { exact: true }).first();
+  await expect(amount).toHaveCSS("opacity", "0");
+  await amount.hover();
+  await expect(amount).toHaveCSS("opacity", "1");
+
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload({ waitUntil: "domcontentloaded" });
   await expect(page.getByTestId("kpi")).toHaveCount(4);
@@ -48,12 +54,6 @@ test("maya sees the dashboard overview and can hide amounts", async ({ page }) =
     return root.scrollWidth <= window.innerWidth;
   });
   expect(fits).toBe(true);
-
-  await page.getByRole("button", { name: "HIDE" }).first().click();
-  const amount = page.getByText("$3,600.00", { exact: true }).first();
-  await expect(amount).toHaveCSS("opacity", "0");
-  await amount.hover();
-  await expect(amount).toHaveCSS("opacity", "1");
 
   assertClean(errors);
 });

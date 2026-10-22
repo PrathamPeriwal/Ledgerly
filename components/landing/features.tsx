@@ -57,7 +57,7 @@ export function Features() {
           }
         >
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            {[1250, -42.18, 3200].map((v) => (
+            {[31250, -1054.5, 80000].map((v) => (
               <span key={v} className="border-[3px] border-[#1A1B1C] bg-white px-3 py-2 text-lg font-bold">
                 <Amount value={v} />
               </span>

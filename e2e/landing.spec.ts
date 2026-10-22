@@ -13,7 +13,7 @@ test("signed-out landing: scan demo flow and mobile layout", async ({ page }) =>
   await expect(page.locator("#how")).toBeAttached();
 
   const balance = page.getByTestId("balance");
-  await expect(balance).toHaveText("$4,820.00", { timeout: 10000 });
+  await expect(balance).toHaveText("₹1,20,500.00", { timeout: 10000 });
   const rows = page.getByTestId("ledger-row");
   const before = await rows.count();
 
@@ -24,8 +24,8 @@ test("signed-out landing: scan demo flow and mobile layout", async ({ page }) =>
 
   await expect(rows).toHaveCount(before + 1);
   await expect(rows.first()).toContainText("Corner Market");
-  await expect(balance).not.toHaveText("$4,820.00");
-  await expect(balance).toHaveText("$4,777.82", { timeout: 5000 });
+  await expect(balance).not.toHaveText("₹1,20,500.00");
+  await expect(balance).toHaveText("₹1,19,445.50", { timeout: 5000 });
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(300);

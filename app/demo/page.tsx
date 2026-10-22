@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { btnOrange, btnWhite } from "@/components/landing/ui";
+import { useRouteProgress } from "@/components/route-progress";
 
 let ticketRequest: Promise<string> | null = null;
 let demoSessionId: string | null = null;
@@ -30,6 +31,7 @@ export default function DemoPage() {
   const { isLoaded: authLoaded, isSignedIn } = useAuth();
   const { isLoaded: signInLoaded, signIn, setActive } = useSignIn();
   const { signOut } = useClerk();
+  const { start } = useRouteProgress();
   const [attempt, setAttempt] = useState(0);
   const [failed, setFailed] = useState(false);
   const phase = useRef<"idle" | "out" | "done">("idle");
@@ -39,7 +41,10 @@ export default function DemoPage() {
     if (phase.current === "done") return;
 
     if (demoSessionId) {
-      if (isSignedIn) router.replace("/dashboard");
+      if (isSignedIn) {
+        start();
+        router.replace("/dashboard");
+      }
       return;
     }
 
@@ -67,11 +72,13 @@ export default function DemoPage() {
         demoSessionId = created.createdSessionId;
         await setActive({ session: created.createdSessionId });
         phase.current = "done";
+        start();
         router.replace("/dashboard");
       } catch (error) {
         const message = error instanceof Error ? error.message : "";
         if (demoSessionId || message.includes("already signed in")) {
           phase.current = "done";
+          start();
           router.replace("/dashboard");
           return;
         }
@@ -81,7 +88,7 @@ export default function DemoPage() {
         setFailed(true);
       }
     })();
-  }, [attempt, authLoaded, isSignedIn, router, setActive, signIn, signInLoaded, signOut]);
+  }, [attempt, authLoaded, isSignedIn, router, setActive, signIn, signInLoaded, signOut, start]);
 
   if (failed) {
     return (

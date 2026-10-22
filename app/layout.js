@@ -1,5 +1,9 @@
+import { Suspense } from "react";
 import { Geist_Mono, Hanken_Grotesk } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
+import { RouteProgress } from "@/components/route-progress";
+import { ReloadOnRestore } from "@/components/reload-on-restore";
 import { BgGridDrift } from "@/components/fx/GridBackground";
 import { CustomCursor } from "@/components/fx/CustomCursor";
 import { PrivacyProvider } from "@/components/fx/Privacy";
@@ -17,6 +21,20 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-mono",
+});
+
+const rupee = localFont({
+  src: [
+    { path: "./fonts/rupee-400.ttf", weight: "400" },
+    { path: "./fonts/rupee-500.ttf", weight: "500" },
+    { path: "./fonts/rupee-600.ttf", weight: "600" },
+    { path: "./fonts/rupee-700.ttf", weight: "700" },
+  ],
+  variable: "--font-rupee",
+  display: "swap",
+  preload: false,
+  adjustFontFallback: false,
+  declarations: [{ prop: "unicode-range", value: "U+20B9" }],
 });
 
 export const metadata = {
@@ -70,8 +88,12 @@ export default function RootLayout({ children }) {
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
     >
-      <html lang="en" className={`${hanken.variable} ${geistMono.variable}`}>
+      <html lang="en" className={`${hanken.variable} ${geistMono.variable} ${rupee.variable}`}>
         <body className="min-h-screen bg-background bg-grid font-sans text-foreground">
+          <Suspense fallback={null}>
+            <RouteProgress />
+          </Suspense>
+          <ReloadOnRestore />
           <PrivacyProvider>
             <a
               href="#content"

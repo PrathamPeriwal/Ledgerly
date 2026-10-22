@@ -92,7 +92,7 @@ export function AccountGrid({ accounts }: { accounts: DashboardAccount[] }) {
               ) : null}
               <span className="label mt-2 text-muted-foreground">{account.type}</span>
               <span className="mt-auto pt-6">
-                <Amount value={account.balance} className="text-3xl font-bold leading-none sm:text-4xl" />
+                <Amount value={account.balance} className="block break-words text-2xl font-bold leading-tight sm:text-3xl" />
               </span>
             </Link>
             {account.isDefault ? null : (

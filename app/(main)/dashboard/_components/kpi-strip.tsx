@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Amount } from "@/components/fx/Privacy";
 import type { DashboardBudget } from "@/lib/types/dashboard";
 
-const figure = "text-xl font-bold leading-none tracking-tight sm:text-2xl lg:text-[2rem]";
+const figure = "block min-w-0 break-words text-lg font-bold leading-tight tracking-tight sm:text-xl lg:text-2xl";
 
 function Figure({ children }: { children: ReactNode }) {
   return <div className="mt-3 min-w-0">{children}</div>;

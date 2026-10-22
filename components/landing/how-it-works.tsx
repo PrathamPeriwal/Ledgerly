@@ -1,3 +1,4 @@
+import { formatCurrency } from "@/lib/format";
 import { RevealHeading } from "@/components/fx/RevealHeading";
 import { StickyCardStack, type StickyCard } from "@/components/fx/StickyCardStack";
 import { RadialHatch } from "@/components/fx/LineArt";
@@ -38,7 +39,7 @@ function ReviewCard() {
       <div className="space-y-2 text-[#1A1B1C]" aria-hidden>
         {[
           ["MERCHANT", "Corner Market"],
-          ["AMOUNT", "$42.18"],
+          ["AMOUNT", formatCurrency(1054.5)],
           ["CATEGORY", "Groceries"],
         ].map(([k, v]) => (
           <div key={k} className="flex items-center justify-between gap-2 border-[3px] border-white bg-[#1A1B1C] px-3 py-2 text-white">

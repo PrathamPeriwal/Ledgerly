@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { formatCurrency, formatDate, formatDateShort } from "@/lib/format";
+import { formatCompactCurrency, formatCurrency, formatDate, formatDateShort } from "@/lib/format";
 
 describe("format", () => {
-  it("formats USD with two decimals and an optional sign", () => {
-    expect(formatCurrency(12)).toBe("$12.00");
-    expect(formatCurrency(-3.5)).toBe("-$3.50");
-    expect(formatCurrency(8, { sign: true })).toBe("+$8.00");
-    expect(formatCurrency(-8, { sign: true })).toBe("-$8.00");
+  it("formats INR with Indian grouping and an optional sign", () => {
+    expect(formatCurrency(12)).toBe("₹12.00");
+    expect(formatCurrency(124500)).toBe("₹1,24,500.00");
+    expect(formatCurrency(-3.5)).toBe("-₹3.50");
+    expect(formatCurrency(8, { sign: true })).toBe("+₹8.00");
+    expect(formatCurrency(-8, { sign: true })).toBe("-₹8.00");
+    expect(formatCompactCurrency(124500)).toBe("₹1.2L");
   });
 
   it("formats a calendar date", () => {

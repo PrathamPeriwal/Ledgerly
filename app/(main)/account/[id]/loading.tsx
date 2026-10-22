@@ -1,4 +1,5 @@
 import { AccountSummarySkeleton, TransactionsSkeleton } from "../_components/skeletons";
+import { LoadingTag } from "@/components/loading-tag";
 
 export default function Loading() {
   return (
@@ -6,6 +7,7 @@ export default function Loading() {
       <div className="skeleton h-24 border-[3px] border-[#1A1B1C]" />
       <AccountSummarySkeleton />
       <TransactionsSkeleton />
+      <LoadingTag />
     </div>
   );
 }

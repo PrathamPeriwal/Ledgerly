@@ -9,8 +9,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
-        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+        sans: ["var(--font-sans)", "var(--font-rupee)", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "var(--font-rupee)", "ui-monospace", "monospace"],
       },
       colors: {
         background: "var(--background)",

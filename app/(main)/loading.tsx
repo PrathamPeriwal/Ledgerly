@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingTag } from "@/components/loading-tag";
 
 export default function Loading() {
   return (
@@ -8,6 +9,7 @@ export default function Loading() {
         <Skeleton className="h-28" />
         <Skeleton className="h-28" />
       </div>
+      <LoadingTag />
     </div>
   );
 }

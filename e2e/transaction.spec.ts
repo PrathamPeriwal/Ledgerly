@@ -143,13 +143,13 @@ test("hana can review a scan and save a transaction by hand", async ({ page }) =
   await expect(page).toHaveURL(new RegExp(`/account/${accountId}`), { timeout: 20000 });
   const first = page.locator('[data-testid="tx-row"]:visible').first();
   await expect(first).toContainText("E2E test", { timeout: 20000 });
-  await expect(first).toContainText("$12.34");
+  await expect(first).toContainText("₹12.34");
 
   await first.getByRole("button", { name: "Row actions" }).click();
   await page.getByRole("menuitem", { name: "DELETE" }).click();
   await page.getByRole("button", { name: "DELETE", exact: true }).click();
   await expect(page.getByText("E2E test")).toHaveCount(0, { timeout: 20000 });
-  await expect(balance).toContainText(original.match(/-?\$[\d,]+\.\d{2}/)?.[0] ?? original, { timeout: 20000 });
+  await expect(balance).toContainText(original.match(/-?₹[\d,]+\.\d{2}/)?.[0] ?? original, { timeout: 20000 });
   assertClean(errors);
 });
 

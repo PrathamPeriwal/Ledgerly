@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useRouteProgress } from "@/components/route-progress";
 import type { ComponentType, ReactNode } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -40,26 +41,37 @@ export function useAccountFilters() {
 export function AccountFilters({ filters, children }: { filters: AccountParams; children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { start, done } = useRouteProgress();
   const [pending, startTransition] = useTransition();
   const [draft, setDraft] = useState(filters);
   const draftRef = useRef(draft);
+  const started = useRef(false);
   draftRef.current = draft;
 
   useEffect(() => {
     setDraft(filters);
   }, [filters]);
 
+  useEffect(() => {
+    if (pending) started.current = true;
+    if (pending || !started.current) return;
+    started.current = false;
+    done();
+  }, [pending, done]);
+
   const commit = useCallback(
     (next: AccountParams) => {
       draftRef.current = next;
       const qs = toAccountSearch(next);
       const href = qs ? `${pathname}?${qs}` : pathname;
+      started.current = false;
+      start();
       void router.replace(href, { scroll: false });
       startTransition(() => {
         setDraft(next);
       });
     },
-    [pathname, router, startTransition],
+    [pathname, router, start, startTransition],
   );
 
   const patch = useCallback(
@@ -89,11 +101,13 @@ function Segmented({
   value,
   options,
   onChange,
+  pending,
 }: {
   label: string;
   value: string;
   options: { value: string; label: string }[];
   onChange: (value: string) => void;
+  pending?: boolean;
 }) {
   return (
     <Tabs value={value} onValueChange={onChange}>
@@ -102,9 +116,10 @@ function Segmented({
           <TabsTrigger
             key={option.value}
             value={option.value}
-            className="data-[state=active]:bg-[#1A1B1C] data-[state=active]:text-white"
+            disabled={pending}
+            className="data-[state=active]:bg-[#1A1B1C] data-[state=active]:text-white disabled:opacity-60"
           >
-            {option.label}
+            {pending ? "..." : option.label}
           </TabsTrigger>
         ))}
       </TabsList>
@@ -113,12 +128,13 @@ function Segmented({
 }
 
 export function RangeTabs() {
-  const { filters, patch } = useAccountFilters();
+  const { filters, patch, pending } = useAccountFilters();
   return (
     <div className="max-w-full overflow-x-auto">
       <Segmented
         label="Range"
         value={filters.range}
+        pending={pending}
         options={ranges}
         onChange={(range) => patch({ range: range as AccountParams["range"] }, true)}
       />
@@ -128,9 +144,17 @@ export function RangeTabs() {
 
 export function AccountSwitcher({ accounts, currentId }: { accounts: AccountOption[]; currentId: string }) {
   const router = useRouter();
+  const { start } = useRouteProgress();
   const current = accounts.find((account) => account.id === currentId);
   return (
-    <Select value={currentId} onValueChange={(id) => router.push(`/account/${id}`)}>
+    <Select
+      value={currentId}
+      onValueChange={(id) => {
+        if (id === currentId) return;
+        start();
+        router.push(`/account/${id}`);
+      }}
+    >
       <SelectTrigger aria-label="Account" className="label h-10 w-full border-[3px] border-[#1A1B1C] bg-white sm:w-52">
         <span className="truncate">{current?.name ?? "ACCOUNT"}</span>
       </SelectTrigger>
@@ -146,7 +170,7 @@ export function AccountSwitcher({ accounts, currentId }: { accounts: AccountOpti
 }
 
 export function AccountToolbar() {
-  const { filters, patch, clear } = useAccountFilters();
+  const { filters, patch, clear, pending } = useAccountFilters();
   const [q, setQ] = useState(filters.q);
 
   useEffect(() => {
@@ -174,6 +198,7 @@ export function AccountToolbar() {
         <Segmented
           label="Type"
           value={filters.type}
+          pending={pending}
           options={[
             { value: "all", label: "ALL" },
             { value: "income", label: "INCOME" },
@@ -186,6 +211,7 @@ export function AccountToolbar() {
         <Segmented
           label="Recurring"
           value={filters.recurring}
+          pending={pending}
           options={[
             { value: "all", label: "ALL" },
             { value: "recurring", label: "RECURRING" },

@@ -524,7 +524,7 @@ Financial Data for {month}:
 - Total Income: ${totalIncome}
 - Total Expenses: ${totalExpenses}
 - Net Income: ${totalIncome - totalExpenses}
-- Expense Categories: housing: $1500, groceries: $600, ...
+- Expense Categories: housing: ₹37,500.00, groceries: ₹15,000.00, ...
 
 Format the response as a JSON array of strings, like this:
 ["insight 1", "insight 2", "insight 3"]

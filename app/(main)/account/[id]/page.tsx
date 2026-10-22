@@ -3,7 +3,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { Reveal } from "@/components/fx/Reveal";
 import { getAccountForUser, listAccountNames } from "@/lib/data/account";
-import { parseAccountParams, serializeAccountParams } from "@/lib/data/account-calc";
+import { parseAccountParams } from "@/lib/data/account-calc";
 import { AccountFilters, AccountSwitcher, AccountToolbar } from "../_components/filters";
 import { AccountSummarySkeleton, TransactionsSkeleton } from "../_components/skeletons";
 import { AccountSummary } from "../_components/summary";
@@ -52,7 +52,7 @@ export default async function AccountPage({
               <div className="border-b-[3px] border-[#1A1B1C] p-3">
                 <AccountToolbar />
               </div>
-              <Suspense key={serializeAccountParams(filters)} fallback={<TransactionsSkeleton />}>
+              <Suspense fallback={<TransactionsSkeleton />}>
                 <AccountTransactions id={account.id} filters={filters} />
               </Suspense>
             </div>

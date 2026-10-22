@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 
-export const START_BALANCE = 4820;
+export const START_BALANCE = 120500;
 
 let balance = START_BALANCE;
 const listeners = new Set<() => void>();

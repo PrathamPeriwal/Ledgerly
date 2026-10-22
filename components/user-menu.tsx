@@ -1,6 +1,7 @@
 "use client";
 
 import { useClerk, useUser } from "@clerk/nextjs";
+import { useRouteProgress } from "@/components/route-progress";
 import type { ComponentType, ReactNode } from "react";
 import {
   DropdownMenu as DropdownMenuRoot,
@@ -35,6 +36,7 @@ function initials(user: {
 export function UserMenu() {
   const { user } = useUser();
   const { openUserProfile, signOut } = useClerk();
+  const { start } = useRouteProgress();
   const image = user?.hasImage ? user.imageUrl : "";
 
   return (
@@ -58,7 +60,13 @@ export function UserMenu() {
         <DropdownMenuItem className="label" onSelect={() => openUserProfile()}>
           MANAGE ACCOUNT
         </DropdownMenuItem>
-        <DropdownMenuItem className="label" onSelect={() => void signOut({ redirectUrl: "/" })}>
+        <DropdownMenuItem
+          className="label"
+          onSelect={() => {
+            start();
+            void signOut({ redirectUrl: "/" });
+          }}
+        >
           SIGN OUT
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -55,6 +55,7 @@ export function PrivacyProvider({ children }: { children: ReactNode }) {
     }
 
     const onKey = (event: KeyboardEvent) => {
+      if (typeof event.key !== "string") return;
       if (event.repeat || event.metaKey || event.ctrlKey || event.altKey) return;
       if (event.key.toLowerCase() !== "h") return;
       if (isTyping(event.target)) return;

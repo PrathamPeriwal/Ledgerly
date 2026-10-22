@@ -3,6 +3,7 @@
 import { useEffect, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
+import { useRouteProgress } from "@/components/route-progress";
 import { usePrivacy } from "@/components/fx/Privacy";
 import {
   Command,
@@ -30,11 +31,13 @@ function isTyping(target: EventTarget | null) {
 export function CommandMenu() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
+  const { start } = useRouteProgress();
   const { signOut } = useClerk();
   const { toggle } = usePrivacy();
 
   useEffect(() => {
     const onKey = (event: globalThis.KeyboardEvent) => {
+      if (typeof event.key !== "string") return;
       if (event.repeat) return;
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
@@ -45,6 +48,7 @@ export function CommandMenu() {
       if (event.key.toLowerCase() !== "n") return;
       if (isTyping(event.target)) return;
       event.preventDefault();
+      start();
       router.push("/transaction/create");
     };
 
@@ -57,15 +61,16 @@ export function CommandMenu() {
       window.removeEventListener("keydown", onKey, true);
       window.removeEventListener(COMMAND_MENU_EVENT, onOpen);
     };
-  }, [router]);
+  }, [router, start]);
 
   const go = (href: string) => {
     setOpen(false);
+    start();
     router.push(href);
   };
 
   const runSelected = (event: ReactKeyboardEvent<HTMLElement>) => {
-    if (event.key !== "Enter") return;
+    if (typeof event.key !== "string" || event.key !== "Enter") return;
     const selected = event.currentTarget.querySelector<HTMLElement>("[cmdk-item][data-selected='true']");
     const label = selected?.textContent?.trim().toLowerCase() ?? "";
     if (!label) return;
@@ -77,6 +82,7 @@ export function CommandMenu() {
       setOpen(false);
     } else if (label.includes("sign out")) {
       setOpen(false);
+      start();
       void signOut({ redirectUrl: "/" });
     }
   };
@@ -118,6 +124,7 @@ export function CommandMenu() {
                 value="Sign out"
                 onSelect={() => {
                   setOpen(false);
+                  start();
                   void signOut({ redirectUrl: "/" });
                 }}
               >

@@ -35,6 +35,22 @@ const nextConfig = {
         ],
       },
       {
+        source: "/dashboard",
+        headers: [{ key: "Cache-Control", value: "no-store" }],
+      },
+      {
+        source: "/dashboard/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store" }],
+      },
+      {
+        source: "/account/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store" }],
+      },
+      {
+        source: "/transaction/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store" }],
+      },
+      {
         source: '/fonts/(.*)',
         headers: [
           {
