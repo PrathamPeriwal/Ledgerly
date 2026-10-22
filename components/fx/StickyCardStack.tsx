@@ -1,13 +1,29 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { motion, useScroll, useSpring, useTransform, type MotionValue } from "motion/react";
+import {
+  createContext,
+  useContext,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  motion,
+  useMotionValue,
+  useMotionValueEvent,
+  useScroll,
+  useSpring,
+  useTransform,
+  type MotionValue,
+} from "motion/react";
 import { cn } from "@/lib/utils";
 import { DiagonalGrid } from "./DiagonalGrid";
 import { RevealGroup } from "./Reveal";
-import { dimAmount, enterAmount, gridAmount, sectionHeightVh } from "@/lib/fx/stack-timing";
+import { sectionHeightVh, stackFrame } from "@/lib/fx/stack-timing";
 
 const INK = "#1A1B1C";
+const GRID_DRIFT = 0.65;
 
 const FILLS = {
   orange: { background: "#FF5F14", color: INK },
@@ -21,21 +37,24 @@ export type StickyCard = {
   className?: string;
 };
 
+/** Per-card scroll progress (0..1, second half of the card's slot). 1 when not animating. */
+const LocalContext = createContext<MotionValue<number> | null>(null);
+
+export function useStackLocal(): MotionValue<number> {
+  const ctx = useContext(LocalContext);
+  const done = useMotionValue(1);
+  return ctx ?? done;
+}
+
+// Final geometry as % of the stage.
 const PLACES = [
-  { width: "72%", height: "78%", left: "3%", top: "2%" },
-  { width: "66%", height: "64%", left: "20%", top: "28%" },
-  { width: "60%", height: "46%", left: "34%", top: "50%" },
+  { left: 2.5, top: 3, width: 68, height: 74 },
+  { left: 24, top: 20, width: 68, height: 72 },
+  { left: 10, top: 40, width: 58, height: 56 },
 ];
 
 function place(index: number) {
-  return (
-    PLACES[index] ?? {
-      width: `${62 - (index % 3) * 4}%`,
-      height: `${66 - (index % 3) * 4}%`,
-      left: index % 2 ? "32%" : "12%",
-      top: `${10 + (index % 3) * 7}%`,
-    }
-  );
+  return PLACES[index] ?? { left: 10, top: 10 + (index % 3) * 8, width: 60, height: 60 };
 }
 
 function StackCard({
@@ -50,31 +69,38 @@ function StackCard({
   progress: MotionValue<number>;
 }) {
   const box = place(index);
-  const x = useTransform(progress, (value) => `${(1 - enterAmount(value, index, total)) * 28}vw`);
-  const y = useTransform(progress, (value) => `${(1 - enterAmount(value, index, total)) * 36}vh`);
-  const scale = useTransform(progress, (value) => {
-    const entered = enterAmount(value, index, total);
-    const dimmed = dimAmount(value, index, total);
-    return (0.94 + entered * 0.06) * (1 - dimmed * 0.06);
-  });
-  const filter = useTransform(progress, (value) => `brightness(${1 - dimAmount(value, index, total) * 0.28})`);
+  // distance (in own width %) that puts the card fully past the stage's right edge
+  const offX = Math.ceil(((100 - box.left) / box.width) * 100) + 4;
+  const enter = useTransform(progress, (v) => stackFrame(v, total).cards[index].enter);
+  const dim = useTransform(progress, (v) => stackFrame(v, total).cards[index].dim);
+  const local = useTransform(progress, (v) => stackFrame(v, total).cards[index].local);
+  const x = useTransform(enter, (e) => `${(1 - e) * offX}%`);
+  const y = useTransform(enter, (e) => `${(1 - e) * 40}%`);
+  const scale = useTransform(dim, (d) => 1 - d * 0.03);
+  const overlay = useTransform(dim, (d) => d * 0.35);
   return (
     <motion.article
       data-sticky-card="true"
-      className={cn("absolute overflow-hidden border-[3px] border-[#1A1B1C] p-6 md:p-8", card.className)}
+      className={cn("absolute overflow-hidden border-[3px] border-[#1A1B1C] p-5 xl:p-6", card.className)}
       style={{
-        ...box,
+        left: `${box.left}%`,
+        top: `${box.top}%`,
+        width: `${box.width}%`,
+        height: `${box.height}%`,
         x,
         y,
         scale,
-        filter,
-        opacity: 1,
         zIndex: index + 1,
         background: FILLS[card.bg].background,
         color: FILLS[card.bg].color,
       }}
     >
-      {card.content}
+      <LocalContext.Provider value={local}>{card.content}</LocalContext.Provider>
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[#1A1B1C]"
+        style={{ opacity: overlay }}
+      />
     </motion.article>
   );
 }
@@ -87,13 +113,26 @@ export function StickyCardStack({
   className?: string;
 }) {
   const ref = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const [compact, setCompact] = useState(false);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end end"],
-  });
-  const smooth = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.4 });
-  const grid = useTransform(scrollYProgress, (value) => gridAmount(value, cards.length));
+  const raw = useMotionValue(0);
+  const smooth = useSpring(raw, { stiffness: 120, damping: 30, mass: 0.4 });
+  const range = useMotionValue(0);
+  const { scrollY } = useScroll();
+  const gridPx = useTransform([smooth, range], ([p, r]) => stackFrame(Number(p), 1).gridOffset * Number(r) * GRID_DRIFT);
+
+  const measure = () => {
+    const section = ref.current;
+    const stage = stageRef.current;
+    if (!section || !stage) return;
+    const pinTop = parseFloat(getComputedStyle(stage).top) || 0;
+    const total = section.offsetHeight - stage.offsetHeight;
+    range.set(Math.max(total, 0));
+    if (total <= 0) return;
+    const p = (pinTop - section.getBoundingClientRect().top) / total;
+    raw.set(Math.min(1, Math.max(0, p)));
+  };
+  useMotionValueEvent(scrollY, "change", measure);
 
   useLayoutEffect(() => {
     const mobile = window.matchMedia("(max-width: 767px)");
@@ -108,17 +147,26 @@ export function StickyCardStack({
     };
   }, []);
 
+  useLayoutEffect(() => {
+    if (compact) return;
+    measure();
+    smooth.jump(raw.get());
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [compact]);
+
   if (cards.length === 0) return null;
 
   if (compact) {
     return (
-      <section ref={ref} className={className}>
-        <RevealGroup className="flex flex-col gap-6 px-6 py-10">
+      <section className={className} data-sticky-list="true">
+        <RevealGroup className="flex flex-col gap-6 px-4 py-10">
           {cards.map((card, index) => (
             <article
               key={index}
               data-sticky-card="true"
-              className={cn("border-[3px] border-[#1A1B1C] p-8", card.className)}
+              className={cn("border-[3px] border-[#1A1B1C] p-5", card.className)}
               style={{ background: FILLS[card.bg].background, color: FILLS[card.bg].color }}
             >
               {card.content}
@@ -130,17 +178,21 @@ export function StickyCardStack({
   }
 
   return (
-    <section ref={ref} className={className} style={{ height: `${sectionHeightVh(cards.length)}vh` }}>
-      <div data-sticky-stage="true" className="sticky top-0 h-screen overflow-hidden bg-[#E3E7EB]">
-        <DiagonalGrid progress={grid} />
+    <section
+      ref={ref}
+      data-sticky-section="true"
+      className={className}
+      style={{ height: `${sectionHeightVh(cards.length)}svh` }}
+    >
+      <div
+        ref={stageRef}
+        data-sticky-stage="true"
+        className="sticky overflow-clip bg-[#E3E7EB]"
+        style={{ top: "var(--nav-h, 64px)", height: "calc(100svh - var(--nav-h, 64px))" }}
+      >
+        <DiagonalGrid offset={gridPx} />
         {cards.map((card, index) => (
-          <StackCard
-            key={index}
-            card={card}
-            index={index}
-            total={cards.length}
-            progress={smooth}
-          />
+          <StackCard key={index} card={card} index={index} total={cards.length} progress={smooth} />
         ))}
       </div>
     </section>
