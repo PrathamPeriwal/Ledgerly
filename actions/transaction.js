@@ -111,6 +111,17 @@ export async function getTransaction(id) {
       id,
       userId: user.id,
     },
+    select: {
+      id: true,
+      type: true,
+      amount: true,
+      description: true,
+      accountId: true,
+      category: true,
+      date: true,
+      isRecurring: true,
+      recurringInterval: true,
+    },
   });
 
   if (!transaction) throw new Error("Transaction not found");

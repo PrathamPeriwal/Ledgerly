@@ -12,3 +12,20 @@ Load times are measured from this machine to the hosted database and are only me
 | Omar | /dashboard | 13 | 2009 |
 | Omar | /account (default) | 9 | 1896 |
 | Omar | /transaction/create | 2 | 1866 |
+
+## After
+
+| User | Route | Queries | Load ms |
+| --- | --- | --- | --- |
+| Maya | /dashboard | 6 | 1872 |
+| Maya | /account (default) | 9 | 2079 |
+| Maya | /transaction/create | 2 | 1778 |
+| Omar | /dashboard | 6 | 1701 |
+| Omar | /account (default) | 9 | 1703 |
+| Omar | /transaction/create | 2 | 1751 |
+
+## Summary
+
+- /dashboard: 13 queries before, 6 after (Maya and Omar).
+- /account (default): 9 queries before, 9 after (Maya and Omar).
+- /transaction/create: 2 queries before, 2 after (Maya and Omar).
