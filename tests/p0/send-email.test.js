@@ -34,7 +34,8 @@ describe("sendEmail", () => {
     });
 
     expect(callers.map((file) => path.relative(root, file)).sort()).toEqual([
-      path.join("lib", "inngest", "function.js"),
+      path.join("lib", "services", "budget-alerts.ts"),
+      path.join("lib", "services", "monthly-report.ts"),
     ]);
 
     for (const file of callers) {

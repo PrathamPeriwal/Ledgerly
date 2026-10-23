@@ -26,10 +26,21 @@ function startServer(port) {
     // Arcjet rejects it. ARCJET_ENV is Arcjet's documented local override.
     // Do not pin -H 127.0.0.1: Next's origin becomes that host while middleware
     // rewrites to localhost, and the router proxies to itself until it 500s.
-    env: { ...process.env, ARCJET_ENV: "development" },
+    // next start is production, so Inngest cloud mode answers 401 unless the
+    // request is signed, and that body does not list function ids. Dev mode
+    // returns the introspection JSON (function_count) without a signing key.
+    env: { ...process.env, ARCJET_ENV: "development", INNGEST_DEV: "1" },
     stdio: ["ignore", "pipe", "pipe"],
     windowsHide: true,
   });
+}
+
+function functionIdsIn(body) {
+  if (!body || typeof body !== "object" || !Array.isArray(body.functions)) return null;
+  const ids = body.functions
+    .map((fn) => (fn && typeof fn.id === "string" ? fn.id : ""))
+    .filter(Boolean);
+  return ids.length > 0 ? ids : null;
 }
 
 function stopServer(child) {
@@ -140,6 +151,37 @@ async function main() {
     if (home.status !== 200) {
       failures.push(`GET / returned ${home.status}, expected 200`);
     }
+
+    const expectedFunctionIds = [
+      "process-recurring-transaction",
+      "trigger-recurring-transactions",
+      "generate-monthly-reports",
+      "check-budget-alerts",
+      "process-budget-alert",
+      "process-monthly-report",
+    ];
+    const inngestRes = await fetch(`${base}/api/inngest`, { headers, redirect: "manual" });
+    const inngestText = await inngestRes.text();
+    if (inngestRes.status !== 200) {
+      failures.push(`GET /api/inngest returned ${inngestRes.status}, expected 200`);
+    } else {
+      let body = null;
+      try {
+        body = JSON.parse(inngestText);
+      } catch {
+        failures.push("GET /api/inngest did not return JSON");
+      }
+      const listed = functionIdsIn(body);
+      if (listed) {
+        for (const id of expectedFunctionIds) {
+          if (!listed.includes(id)) failures.push(`GET /api/inngest missing function ${id}`);
+        }
+      } else if (!body || body.function_count !== expectedFunctionIds.length) {
+        failures.push(
+          `GET /api/inngest function_count ${body ? body.function_count : "missing"}, expected ${expectedFunctionIds.length}`,
+        );
+      }
+    }
   } catch (error) {
     failures.push(error instanceof Error ? error.message : String(error));
   } finally {
@@ -156,7 +198,7 @@ async function main() {
   }
 
   console.log(
-    `smoke ok on ${base}: /api/seed 404, /api/scan-receipt unauthorized, /debug-auth 404, / 200`
+    `smoke ok on ${base}: /api/seed 404, /api/scan-receipt unauthorized, /debug-auth 404, / 200, /api/inngest 200`
   );
 }
 

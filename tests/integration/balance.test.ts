@@ -25,6 +25,7 @@ describe.skipIf(!directUrl)("balance integration (Hana, DIRECT_URL)", () => {
     const { transactionInputSchema } = await import("@/lib/validation/transaction");
 
     const hana = await prisma.user.findFirstOrThrow({ where: { email: "hana@example.com" } });
+    await prisma.$executeRaw`SELECT pg_advisory_lock(hashtext('hana-integration'))`;
     const snapshot = async () => ({
       accounts: (await prisma.account.findMany({ where: { userId: hana.id }, orderBy: { id: "asc" } })).map((a) => [a.id, a.balance.toString()]),
       txCount: await prisma.transaction.count({ where: { userId: hana.id } }),
@@ -73,6 +74,7 @@ describe.skipIf(!directUrl)("balance integration (Hana, DIRECT_URL)", () => {
       if (tempId) await prisma.account.deleteMany({ where: { id: tempId, userId: hana.id } });
       await prisma.account.updateMany({ where: { id: original.id, userId: hana.id }, data: { balance: originalStart } });
       const after = await snapshot();
+      await prisma.$executeRaw`SELECT pg_advisory_unlock(hashtext('hana-integration'))`;
       await prisma.$disconnect();
       expect(after).toEqual(before);
     }

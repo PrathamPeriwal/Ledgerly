@@ -4,24 +4,12 @@ import { NotFoundError } from "@/lib/errors";
 import type { TransactionInput } from "@/lib/validation/transaction";
 import { accountDeltas, updateDeltas } from "@/lib/services/balance";
 import { applyDeltas } from "@/lib/services/apply-deltas";
+import { addInterval, isRecurringInterval } from "@/lib/services/recurring";
 
 export function calculateNextRecurringDate(startDate: Date | string, interval: string): Date {
   const date = new Date(startDate);
-  switch (interval) {
-    case "DAILY":
-      date.setDate(date.getDate() + 1);
-      break;
-    case "WEEKLY":
-      date.setDate(date.getDate() + 7);
-      break;
-    case "MONTHLY":
-      date.setMonth(date.getMonth() + 1);
-      break;
-    case "YEARLY":
-      date.setFullYear(date.getFullYear() + 1);
-      break;
-  }
-  return date;
+  if (!isRecurringInterval(interval)) return date;
+  return addInterval(date, interval, 1);
 }
 
 function rowData(input: TransactionInput) {
