@@ -25,8 +25,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { createAccount } from "@/actions/dashboard";
-import { accountSchema } from "@/app/lib/schema";
+import { createAccount } from "@/actions/account";
+import { accountSchema } from "@/lib/validation/account";
 
 export function CreateAccountDrawer({ children }) {
   const [open, setOpen] = useState(false);
@@ -59,7 +59,9 @@ export function CreateAccountDrawer({ children }) {
   };
 
   useEffect(() => {
-    if (newAccount) {
+    if (newAccount && !newAccount.success) {
+      toast.error(newAccount.error || "Failed to create account");
+    } else if (newAccount) {
       toast.success("Account created successfully");
       reset();
       setOpen(false);
@@ -169,3 +171,5 @@ export function CreateAccountDrawer({ children }) {
     </Drawer>
   );
 }
+
+

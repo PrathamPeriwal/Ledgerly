@@ -14,14 +14,13 @@ function datasourceUrl() {
 
 function createPrismaClient() {
   const url = datasourceUrl();
-  const options = {};
-  if (url) options.datasourceUrl = url;
-  if (process.env.PRISMA_LOG_QUERIES === "1") {
-    options.log = [{ emit: "stdout", level: "query" }];
-  }
-  return new PrismaClient(options);
+  const log: { emit: "stdout"; level: "query" }[] =
+    process.env.PRISMA_LOG_QUERIES === "1" ? [{ emit: "stdout", level: "query" }] : [];
+  return new PrismaClient({ ...(url ? { datasourceUrl: url } : {}), log });
 }
 
-export const db = globalThis.prisma || createPrismaClient();
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-globalThis.prisma = db;
+export const db: PrismaClient = globalForPrisma.prisma || createPrismaClient();
+
+globalForPrisma.prisma = db;

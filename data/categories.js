@@ -165,3 +165,7 @@ export const categoryColors = defaultCategories.reduce((acc, category) => {
   acc[category.id] = category.color;
   return acc;
 }, {});
+
+export function isValidCategory(type, id) {
+  return defaultCategories.some((category) => category.type === type && category.id === id);
+}

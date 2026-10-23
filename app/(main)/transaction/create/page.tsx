@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getTransaction } from "@/actions/transaction";
+import { getTransaction } from "@/lib/data/transaction";
 import { PageHeader } from "@/components/page-header";
 import { listTransactionAccounts } from "@/lib/data/account";
 import { TransactionForm, type TransactionInitial } from "../_components/transaction-form";
@@ -65,3 +65,4 @@ export default function Page({
     </Suspense>
   );
 }
+
