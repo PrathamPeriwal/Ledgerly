@@ -10,7 +10,7 @@ import type {
 } from "@/lib/types/account";
 
 export const PAGE_SIZE = 15;
-export const MAX_PAGE = 1000;
+const MAX_PAGE = 1000;
 
 export const DEFAULT_ACCOUNT_PARAMS: AccountParams = {
   range: "3m",
@@ -66,12 +66,6 @@ export function clampPage(value: number) {
   return page;
 }
 
-export function serializeAccountParams(params: AccountParams) {
-  return [params.range, params.q, params.type, params.recurring, params.sort, params.dir, String(params.page)].join(
-    "|",
-  );
-}
-
 export function hasActiveFilters(params: AccountParams) {
   return (
     params.q.length > 0 ||
@@ -117,7 +111,7 @@ export function rangeStart(range: AccountRange, now: Date) {
   return addUtcMonths(today, -6);
 }
 
-export type AccountBucket = "day" | "week" | "month";
+type AccountBucket = "day" | "week" | "month";
 
 export function bucketFor(range: AccountRange): AccountBucket {
   if (range === "7d" || range === "1m") return "day";
@@ -125,7 +119,7 @@ export function bucketFor(range: AccountRange): AccountBucket {
   return "month";
 }
 
-export function bucketLabel(date: Date, bucket: AccountBucket) {
+function bucketLabel(date: Date, bucket: AccountBucket) {
   if (bucket === "day") return String(date.getUTCDate());
   if (bucket === "month") {
     return date.toLocaleString("en-US", { month: "short", timeZone: "UTC" }).toUpperCase();

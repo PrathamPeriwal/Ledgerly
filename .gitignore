@@ -44,6 +44,9 @@ yarn-error.log*
 # database snapshots
 backups/
 
+# scratch output
+tmp/
+
 !.env.example
 
 # local notes, not part of the product

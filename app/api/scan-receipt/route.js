@@ -1,7 +1,31 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { auth } from "@clerk/nextjs/server";
+import { fixedWindow, request } from "@arcjet/next";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { defaultCategories } from "@/data/categories";
+import aj from "@/lib/arcjet";
+import { isDemoEmail } from "@/lib/send-email";
+
+const scanByUser = aj.withRule(
+  fixedWindow({ mode: "LIVE", characteristics: ["userId"], window: "1h", max: 10 }),
+);
+const scanByIp = aj.withRule(
+  fixedWindow({ mode: "LIVE", characteristics: ["ip.src"], window: "1h", max: 15 }),
+);
+const scanByDemo = aj.withRule(
+  fixedWindow({ mode: "LIVE", characteristics: ["demoScan"], window: "1h", max: 6 }),
+);
+
+const SCAN_LIMIT = "SCAN LIMIT REACHED. TRY AGAIN LATER.";
+
+function scanLimited(decision) {
+  const headers = {};
+  const reason = decision?.reason;
+  if (typeof reason?.isRateLimit === "function" && reason.isRateLimit() && Number.isFinite(reason.reset)) {
+    headers["Retry-After"] = String(reason.reset);
+  }
+  return NextResponse.json({ error: SCAN_LIMIT }, { status: 429, headers });
+}
 
 export const runtime = "nodejs";
 
@@ -61,6 +85,24 @@ export async function POST(req) {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const clerkUser = await currentUser();
+    const email = clerkUser?.emailAddresses?.[0]?.emailAddress ?? "";
+    const demo = isDemoEmail(email);
+    try {
+      const arcjetRequest = await request();
+      const props = { userId, requested: 1 };
+      const decisions = await Promise.all([
+        scanByUser.protect(arcjetRequest, props),
+        scanByIp.protect(arcjetRequest, props),
+        ...(demo ? [scanByDemo.protect(arcjetRequest, { ...props, demoScan: "shared" })] : []),
+      ]);
+      const denied = decisions.find((decision) => decision.isDenied());
+      if (denied) return scanLimited(denied);
+    } catch (error) {
+      console.error("[scan-receipt] arcjet", error instanceof Error ? error.name : "failed");
+      if (demo) return NextResponse.json({ error: SCAN_LIMIT }, { status: 429 });
     }
 
     const form = await req.formData();

@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import { testPrisma } from "../helpers/db";
 import { describe, expect, it } from "vitest";
 
 function loadDirectUrl() {
@@ -19,8 +20,9 @@ const D = (value: Prisma.Decimal.Value) => new Prisma.Decimal(value);
 
 describe.skipIf(!directUrl)("recurring integration (Hana, DIRECT_URL)", () => {
   it("catches up two months once, then does nothing on the second run", async () => {
+    process.env.DIRECT_URL = directUrl;
     process.env.DATABASE_URL = directUrl;
-    const prisma = new PrismaClient({ datasourceUrl: directUrl });
+    const prisma = testPrisma();
     const { firstOccurrenceAfter, occurrenceDates, processRecurringTemplate } = await import("@/lib/services/recurring");
 
     const hana = await prisma.user.findFirstOrThrow({ where: { email: "hana@example.com" } });

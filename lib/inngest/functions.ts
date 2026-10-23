@@ -1,6 +1,7 @@
 import { inngest } from "@/lib/inngest/client";
 import { deliverBudgetAlert, findBudgetAlerts } from "@/lib/services/budget-alerts";
 import { deliverMonthlyReport, findMonthlyReportUsers } from "@/lib/services/monthly-report";
+import { resetDemoUser } from "@/lib/services/demo-reset";
 import { findDueTemplates, processRecurringTemplate } from "@/lib/services/recurring";
 
 const FANOUT_CHUNK = 100;
@@ -152,6 +153,26 @@ export const processMonthlyReport = inngest.createFunction(
   },
 );
 
+export const demoReset = inngest.createFunction(
+  {
+    id: "demo-reset",
+    name: "Demo Reset",
+    retries: RETRIES,
+  },
+  // 20:00 UTC. This daily job also keeps the free-tier Supabase project from pausing.
+  { cron: "0 20 * * *" },
+  async ({ step }) => {
+    return step.run("reset-demo-user", async () => {
+      try {
+        return await resetDemoUser();
+      } catch (error) {
+        console.error("[inngest:demo-reset]", failureMessage(error));
+        throw error;
+      }
+    });
+  },
+);
+
 export const functions = [
   processRecurringTransaction,
   triggerRecurringTransactions,
@@ -159,4 +180,5 @@ export const functions = [
   checkBudgetAlerts,
   processBudgetAlert,
   processMonthlyReport,
+  demoReset,
 ];

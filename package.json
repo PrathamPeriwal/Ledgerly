@@ -13,7 +13,7 @@
     "test": "vitest run",
     "test:e2e:quick": "playwright test",
     "test:smoke": "node scripts/smoke.mjs",
-    "seed:demo": "node scripts/seed-demo.mjs",
+    "seed:demo": "node --experimental-strip-types scripts/seed-demo.ts",
     "test:e2e": "playwright test",
     "verify": "npm run lint && npm run test && npm run build && npm run test:smoke",
     "email": "email dev",

@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import { testPrisma } from "../helpers/db";
 import { describe, expect, it } from "vitest";
 
 function loadDirectUrl() {
@@ -19,8 +20,9 @@ const D = (value: Prisma.Decimal.Value) => new Prisma.Decimal(value);
 
 describe.skipIf(!directUrl)("balance integration (Hana, DIRECT_URL)", () => {
   it("keeps balances exact through create, move and bulk delete", async () => {
+    process.env.DIRECT_URL = directUrl;
     process.env.DATABASE_URL = directUrl;
-    const prisma = new PrismaClient({ datasourceUrl: directUrl });
+    const prisma = testPrisma();
     const { createTransaction, updateTransaction, deleteTransactions } = await import("@/lib/services/transactions");
     const { transactionInputSchema } = await import("@/lib/validation/transaction");
 
