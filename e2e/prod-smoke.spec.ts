@@ -44,6 +44,10 @@ test("public routes, robots, sitemap, and open graph", async ({ playwright }) =>
     const scan = await request.post("/api/scan-receipt");
     expect(scan.status()).toBe(401);
 
+    const inngest = await request.get("/api/inngest");
+    expect([200, 401]).toContain(inngest.status());
+    expect(inngest.status()).toBeLessThan(500);
+
     expect((await request.get("/robots.txt")).status()).toBe(200);
     expect((await request.get("/sitemap.xml")).status()).toBe(200);
 
