@@ -1,8 +1,8 @@
-import { PrismaClient } from "@prisma/client";
 import { clerk } from "@clerk/testing/playwright";
 import { expect, test, type Page } from "@playwright/test";
+import { testPrisma } from "../tests/helpers/db";
 
-const prisma = new PrismaClient();
+const prisma = testPrisma();
 
 function watch(page: Page) {
   const pageErrors: string[] = [];

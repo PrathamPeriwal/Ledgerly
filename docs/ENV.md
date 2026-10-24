@@ -24,3 +24,4 @@ Names only. Put values in `.env` locally and in Vercel. Never commit them.
 | `BASE_URL` | Playwright | no | Target origin. Defaults to `http://localhost:3000` |
 | `RUN_PERF` | Playwright | no | Set to run `e2e/perf` |
 | `npm_lifecycle_event` | npm | no | Set by npm. `test:e2e:quick` reads it to run two Maya tests |
+| `GEMINI_MODEL` | Google Gemini | no | Model id override. Defaults to `gemini-3.8-flash` |

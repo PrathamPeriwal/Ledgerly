@@ -9,6 +9,7 @@ import { mapScanReceipt, type MappedScan } from "@/lib/scan-mapping";
 type Status = "idle" | "scanning" | "review" | "error";
 
 const READ_FAILED = "COULDN'T READ THAT RECEIPT. ENTER IT BY HAND.";
+const SCAN_LIMIT = "SCAN LIMIT REACHED. TRY AGAIN LATER. YOU CAN STILL ENTER THE TRANSACTION BY HAND.";
 
 export function ReceiptPanel({
   onApply,
@@ -23,6 +24,7 @@ export function ReceiptPanel({
   const inputRef = useRef<HTMLInputElement>(null);
   const previewRef = useRef<string | null>(null);
   const [status, setStatus] = useState<Status>("idle");
+  const [failure, setFailure] = useState(READ_FAILED);
   const [preview, setPreview] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [over, setOver] = useState(false);
@@ -45,6 +47,7 @@ export function ReceiptPanel({
       return;
     }
     setPreviewUrl(URL.createObjectURL(file));
+    setFailure(READ_FAILED);
     setStatus("scanning");
     onScanningChange(true);
     try {
@@ -52,9 +55,11 @@ export function ReceiptPanel({
       const mapped = mapScanReceipt(json);
       setStatus("review");
       onApply(mapped);
-    } catch {
+    } catch (error) {
+      const limited = error instanceof Error && error.name === "ScanLimitError";
+      setFailure(limited ? SCAN_LIMIT : READ_FAILED);
       setStatus("error");
-      toast.error(READ_FAILED);
+      if (!limited) toast.error(READ_FAILED);
     } finally {
       onScanningChange(false);
     }
@@ -133,7 +138,7 @@ export function ReceiptPanel({
       ) : (
         <div>
           {status === "error" ? (
-            <p className="label mb-3 border-l-[3px] border-[#FF5F14] pl-2">{READ_FAILED}</p>
+            <p className="label mb-3 border-l-[3px] border-[#FF5F14] pl-2">{failure}</p>
           ) : null}
           <label
             htmlFor={inputId}

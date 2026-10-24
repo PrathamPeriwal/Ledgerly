@@ -1,7 +1,32 @@
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { auth } from "@clerk/nextjs/server";
+import { fixedWindow, request } from "@arcjet/next";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { defaultCategories } from "@/data/categories";
+import aj from "@/lib/arcjet";
+import { RECEIPT_TIMEOUT_MS } from "@/lib/ai/config";
+import { generateGeminiText } from "@/lib/ai/gemini";
+import { isDemoEmail } from "@/lib/send-email";
+
+const scanByUser = aj.withRule(
+  fixedWindow({ mode: "LIVE", characteristics: ["userId"], window: "1h", max: 10 }),
+);
+const scanByIp = aj.withRule(
+  fixedWindow({ mode: "LIVE", characteristics: ["ip.src"], window: "1h", max: 15 }),
+);
+const scanByDemo = aj.withRule(
+  fixedWindow({ mode: "LIVE", characteristics: ["demoScan"], window: "1h", max: 6 }),
+);
+
+const SCAN_LIMIT = "SCAN LIMIT REACHED. TRY AGAIN LATER.";
+
+function scanLimited(decision) {
+  const headers = {};
+  const reason = decision?.reason;
+  if (typeof reason?.isRateLimit === "function" && reason.isRateLimit() && Number.isFinite(reason.reset)) {
+    headers["Retry-After"] = String(reason.reset);
+  }
+  return NextResponse.json({ error: SCAN_LIMIT }, { status: 429, headers });
+}
 
 export const runtime = "nodejs";
 
@@ -63,6 +88,24 @@ export async function POST(req) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const clerkUser = await currentUser();
+    const email = clerkUser?.emailAddresses?.[0]?.emailAddress ?? "";
+    const demo = isDemoEmail(email);
+    try {
+      const arcjetRequest = await request();
+      const props = { userId, requested: 1 };
+      const decisions = await Promise.all([
+        scanByUser.protect(arcjetRequest, props),
+        scanByIp.protect(arcjetRequest, props),
+        ...(demo ? [scanByDemo.protect(arcjetRequest, { ...props, demoScan: "shared" })] : []),
+      ]);
+      const denied = decisions.find((decision) => decision.isDenied());
+      if (denied) return scanLimited(denied);
+    } catch (error) {
+      console.error("[scan-receipt] arcjet", error instanceof Error ? error.name : "failed");
+      if (demo) return NextResponse.json({ error: SCAN_LIMIT }, { status: 429 });
+    }
+
     const form = await req.formData();
     const file = form.get("file");
     if (!(file instanceof File)) {
@@ -93,26 +136,19 @@ export async function POST(req) {
       );
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const categoryIds = defaultCategories.map((category) => category.id);
     const today = new Date().toISOString().slice(0, 10);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "object",
-          properties: {
-            amount: { type: "number" },
-            date: { type: "string", nullable: true, description: "YYYY-MM-DD, or null when the receipt shows no date" },
-            description: { type: "string" },
-            merchantName: { type: "string" },
-            category: { type: "string", enum: categoryIds },
-          },
-          required: ["amount", "date", "description", "merchantName", "category"],
-        },
+    const jsonSchema = {
+      type: "object",
+      properties: {
+        amount: { type: "number" },
+        date: { type: ["string", "null"], description: "YYYY-MM-DD, or null when the receipt shows no date" },
+        description: { type: "string" },
+        merchantName: { type: "string" },
+        category: { type: "string", enum: categoryIds },
       },
-    });
+      required: ["amount", "date", "description", "merchantName", "category"],
+    };
 
     const prompt = `
 Today is ${today}.
@@ -123,17 +159,11 @@ category must be one of these ids:
 ${categoryGuide()}
 `;
 
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          data: base64,
-          mimeType,
-        },
-      },
-    ]);
-
-    const text = result.response.text();
+    const text = await generateGeminiText({
+      contents: [{ text: prompt }, { inlineData: { data: base64, mimeType } }],
+      timeoutMs: RECEIPT_TIMEOUT_MS,
+      jsonSchema,
+    });
     const cleaned = text.replace(/```(?:json)?|```/g, "").trim();
 
     return NextResponse.json(normalizedReceipt(JSON.parse(cleaned || "{}")));

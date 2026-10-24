@@ -41,6 +41,11 @@ export async function uploadReceipt(file: File) {
   } catch {
     json = null;
   }
+  if (response.status === 429) {
+    const error = new Error("SCAN LIMIT REACHED. TRY AGAIN LATER.");
+    error.name = "ScanLimitError";
+    throw error;
+  }
   if (!response.ok || json == null || typeof json !== "object") {
     throw new Error(String(response.status || "scan"));
   }

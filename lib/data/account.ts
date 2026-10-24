@@ -107,28 +107,27 @@ async function seriesQuery(accountId: string, userId: string, bucket: "day" | "w
   `;
 }
 
-const loadAccount = cache(async (id: string): Promise<AccountHeader | null> => {
-  if (!z.string().uuid().safeParse(id).success) return null;
-  const user = await ensureUser();
-  if (!user) return null;
-
-  const account = await db.account.findFirst({
-    where: { id, userId: user.id },
+// One query per request; the header lookup and the account switcher both read from it.
+const loadUserAccounts = cache(async (userId: string) => {
+  const rows = await db.account.findMany({
+    where: { userId },
     select: { id: true, name: true, type: true, balance: true, isDefault: true },
+    orderBy: { name: "asc" },
   });
-  if (!account) return null;
-
-  return {
-    id: account.id,
-    name: account.name,
-    type: account.type,
-    balance: roundMoney(asNumber(account.balance)),
-    isDefault: account.isDefault,
-  };
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    type: row.type,
+    balance: roundMoney(asNumber(row.balance)),
+    isDefault: row.isDefault,
+  }));
 });
 
 export async function getAccountForUser(id: string): Promise<AccountHeader> {
-  const account = await loadAccount(id);
+  if (!z.string().uuid().safeParse(id).success) notFound();
+  const user = await ensureUser();
+  if (!user) notFound();
+  const account = (await loadUserAccounts(user.id)).find((row) => row.id === id);
   if (!account) notFound();
   return account;
 }
@@ -136,11 +135,7 @@ export async function getAccountForUser(id: string): Promise<AccountHeader> {
 export async function listAccountNames() {
   const user = await ensureUser();
   if (!user) return [];
-  return db.account.findMany({
-    where: { userId: user.id },
-    select: { id: true, name: true },
-    orderBy: { name: "asc" },
-  });
+  return (await loadUserAccounts(user.id)).map(({ id, name }) => ({ id, name }));
 }
 
 type TransactionAccountRow = {
@@ -154,24 +149,7 @@ type TransactionAccountRow = {
 export async function listTransactionAccounts(): Promise<TransactionAccountRow[]> {
   const user = await ensureUser();
   if (!user) return [];
-  const rows = await db.account.findMany({
-    where: { userId: user.id },
-    select: { id: true, name: true, type: true, balance: true, isDefault: true },
-    orderBy: { name: "asc" },
-  });
-  return rows.map((row: {
-    id: string;
-    name: string;
-    type: "CURRENT" | "SAVINGS";
-    balance: unknown;
-    isDefault: boolean;
-  }) => ({
-    id: row.id,
-    name: row.name,
-    type: row.type,
-    balance: roundMoney(asNumber(row.balance)),
-    isDefault: row.isDefault,
-  }));
+  return loadUserAccounts(user.id);
 }
 
 export async function getAccountSummary(id: string, range: AccountParams["range"]): Promise<AccountSummary> {
@@ -189,15 +167,14 @@ export async function getAccountSummary(id: string, range: AccountParams["range"
     ...(start ? { date: { gte: start } } : {}),
   };
 
-  const [incomeAgg, expenseAgg, count, raw] = await Promise.all([
-    db.transaction.aggregate({ where: { ...base, type: "INCOME" }, _sum: { amount: true } }),
-    db.transaction.aggregate({ where: { ...base, type: "EXPENSE" }, _sum: { amount: true } }),
-    db.transaction.count({ where: base }),
+  const [totals, raw] = await Promise.all([
+    db.transaction.groupBy({ by: ["type"], where: base, _sum: { amount: true }, _count: { _all: true } }),
     seriesQuery(account.id, user.id, bucket, start),
   ]);
 
-  const income = roundMoney(asNumber(incomeAgg._sum.amount));
-  const expense = roundMoney(asNumber(expenseAgg._sum.amount));
+  const income = roundMoney(asNumber(totals.find((row) => row.type === "INCOME")?._sum.amount));
+  const expense = roundMoney(asNumber(totals.find((row) => row.type === "EXPENSE")?._sum.amount));
+  const count = totals.reduce((sum, row) => sum + row._count._all, 0);
   const rows: SeriesRow[] = raw.map((row: RawBucket) => ({
     at: asDate(row.bucket),
     type: row.type === "INCOME" ? "INCOME" : "EXPENSE",
@@ -263,3 +240,4 @@ export async function getAccountTransactions(id: string, params: AccountParams):
     pageCount: pageCountFor(total),
   };
 }
+

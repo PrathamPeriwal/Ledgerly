@@ -61,6 +61,10 @@ model Transaction {
 
   @@index([userId])
   @@index([accountId])
+  @@index([userId, date(sort: Desc)], map: "transactions_userId_date_idx")
+  @@index([accountId, date(sort: Desc)], map: "transactions_accountId_date_idx")
+  @@index([userId, type, date], map: "transactions_userId_type_date_idx")
+  @@index([isRecurring, nextRecurringDate], map: "transactions_recurring_next_idx")
   @@map("transactions")
 }
 

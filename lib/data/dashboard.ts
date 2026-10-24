@@ -28,147 +28,179 @@ function asNumber(value: unknown) {
   return Number(value);
 }
 
-function monthLabel(value: unknown) {
-  if (value instanceof Date) {
-    const month = String(value.getUTCMonth() + 1).padStart(2, "0");
-    return `${value.getUTCFullYear()}-${month}`;
-  }
-  const match = String(value).match(/^(\d{4}-\d{2})/);
-  return match ? match[1] : String(value);
+function asIso(value: unknown) {
+  if (value instanceof Date) return value.toISOString();
+  return new Date(String(value)).toISOString();
 }
 
-type AccountRow = {
+type AccountSql = {
   id: string;
   name: string;
-  type: "CURRENT" | "SAVINGS";
+  type: string;
   balance: unknown;
   isDefault: boolean;
-  _count: { transactions: number };
+  txCount: number | bigint;
 };
 
-type RecentRow = {
+type SumSql = {
+  type: string;
+  category: string;
+  total: unknown;
+};
+
+type FlowSql = {
+  month: unknown;
+  type: string;
+  total: unknown;
+};
+
+type RecentSql = {
   id: string;
   description: string | null;
   category: string;
   amount: unknown;
   type: string;
-  date: Date;
-  account: { name: string };
+  date: unknown;
+  accountId: string;
+  accountName: string;
+  rn_account: number | bigint;
+  rn_all: number | bigint;
 };
 
-const recentSelect = {
-  id: true,
-  description: true,
-  category: true,
-  amount: true,
-  type: true,
-  date: true,
-  account: { select: { name: true } },
-} as const;
+type BudgetSql = {
+  amount: unknown;
+};
 
-function mapRecent(row: RecentRow): DashboardTx {
+function mapRecent(row: RecentSql): DashboardTx {
   return {
     id: row.id,
     description: row.description?.trim() || "Untitled",
     category: row.category,
     amount: roundMoney(asNumber(row.amount)),
     type: row.type === "INCOME" ? "INCOME" : "EXPENSE",
-    date: row.date.toISOString(),
-    accountName: row.account.name,
+    date: asIso(row.date),
+    accountName: row.accountName,
   };
 }
 
-export const getDashboardViewModel = cache(async (): Promise<DashboardViewModel> => {
-  const user = await ensureUser();
-  if (!user) throw new Error("User not found");
+function byRecent(a: DashboardTx, b: DashboardTx) {
+  if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+  return a.id < b.id ? 1 : -1;
+}
 
+export async function buildDashboardViewModel(userId: string): Promise<DashboardViewModel> {
   const now = new Date();
   const bounds = monthBoundsUtc(now);
   const flowStart = flowStartUtc(now);
-  const completed = { userId: user.id, status: "COMPLETED" as const };
 
-  const [accountRows, budgetRow, incomeAgg, spentAgg, categoryRows, flowRows, recentAll] =
-    await Promise.all([
-      db.account.findMany({
-        where: { userId: user.id },
-        orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
-        include: { _count: { select: { transactions: true } } },
-      }),
-      db.budget.findUnique({ where: { userId: user.id } }),
-      db.transaction.aggregate({
-        where: { ...completed, type: "INCOME", date: { gte: bounds.start, lt: bounds.endExclusive } },
-        _sum: { amount: true },
-      }),
-      db.transaction.aggregate({
-        where: { ...completed, type: "EXPENSE", date: { gte: bounds.start, lt: bounds.endExclusive } },
-        _sum: { amount: true },
-      }),
-      db.transaction.groupBy({
-        by: ["category"],
-        where: { ...completed, type: "EXPENSE", date: { gte: bounds.start, lt: bounds.endExclusive } },
-        _sum: { amount: true },
-      }),
-      db.$queryRaw<Array<{ month: unknown; type: string; total: unknown }>>`
-        SELECT to_char(date_trunc('month', "date"), 'YYYY-MM') AS month,
-               "type"::text AS type,
-               SUM("amount") AS total
-        FROM "transactions"
-        WHERE "userId" = ${user.id}
-          AND "status" = 'COMPLETED'::"TransactionStatus"
-          AND "date" >= ${flowStart}
-          AND "date" < ${bounds.endExclusive}
-        GROUP BY 1, 2
-      `,
-      db.transaction.findMany({
-        where: { userId: user.id },
-        orderBy: [{ date: "desc" }, { id: "desc" }],
-        take: 5,
-        select: recentSelect,
-      }),
-    ]) as [
-    AccountRow[],
-    { amount: unknown } | null,
-    { _sum: { amount: unknown } },
-    { _sum: { amount: unknown } },
-    { category: string; _sum: { amount: unknown } }[],
-    { month: unknown; type: string; total: unknown }[],
-    RecentRow[],
-  ];
+  const [accountRows, monthRows, flowRows, recentRows, budgetRows] = await Promise.all([
+    db.$queryRaw<AccountSql[]>`
+      SELECT a."id",
+             a."name",
+             a."type"::text AS type,
+             a."balance",
+             a."isDefault",
+             COUNT(t."id")::int AS "txCount"
+      FROM "accounts" a
+      LEFT JOIN "transactions" t ON t."accountId" = a."id"
+      WHERE a."userId" = ${userId}
+      GROUP BY a."id", a."name", a."type", a."balance", a."isDefault", a."createdAt"
+      ORDER BY a."isDefault" DESC, a."createdAt" ASC
+    `,
+    db.$queryRaw<SumSql[]>`
+      SELECT "type"::text AS type,
+             "category",
+             SUM("amount") AS total
+      FROM "transactions"
+      WHERE "userId" = ${userId}
+        AND "status" = 'COMPLETED'::"TransactionStatus"
+        AND "date" >= ${bounds.start}
+        AND "date" < ${bounds.endExclusive}
+      GROUP BY "type", "category"
+    `,
+    db.$queryRaw<FlowSql[]>`
+      SELECT to_char(date_trunc('month', "date"), 'YYYY-MM') AS month,
+             "type"::text AS type,
+             SUM("amount") AS total
+      FROM "transactions"
+      WHERE "userId" = ${userId}
+        AND "status" = 'COMPLETED'::"TransactionStatus"
+        AND "date" >= ${flowStart}
+        AND "date" < ${bounds.endExclusive}
+      GROUP BY 1, 2
+    `,
+    db.$queryRaw<RecentSql[]>`
+      SELECT "id",
+             "description",
+             "category",
+             "amount",
+             "type",
+             "date",
+             "accountId",
+             "accountName",
+             rn_account,
+             rn_all
+      FROM (
+        SELECT t."id",
+               t."description",
+               t."category",
+               t."amount",
+               t."type"::text AS type,
+               t."date",
+               t."accountId",
+               a."name" AS "accountName",
+               row_number() OVER (
+                 PARTITION BY t."accountId"
+                 ORDER BY t."date" DESC, t."id" DESC
+               ) AS rn_account,
+               row_number() OVER (
+                 ORDER BY t."date" DESC, t."id" DESC
+               ) AS rn_all
+          FROM "transactions" t
+          INNER JOIN "accounts" a ON a."id" = t."accountId"
+          WHERE t."userId" = ${userId}
+      ) ranked
+      WHERE rn_account <= 5 OR rn_all <= 5
+    `,
+    db.$queryRaw<BudgetSql[]>`
+      SELECT "amount"
+      FROM "budgets"
+      WHERE "userId" = ${userId}
+      LIMIT 1
+    `,
+  ]);
 
-  const perAccount = await Promise.all(
-    accountRows.map(async (account) => {
-      const rows = (await db.transaction.findMany({
-        where: { userId: user.id, accountId: account.id },
-        orderBy: [{ date: "desc" }, { id: "desc" }],
-        take: 5,
-        select: recentSelect,
-      })) as RecentRow[];
-      return [account.id, rows.map(mapRecent)] as const;
-    }),
-  );
-
-  const accounts: DashboardAccount[] = accountRows.map((account) => ({
+  const accounts: DashboardAccount[] = accountRows.map((account: AccountSql) => ({
     id: account.id,
     name: account.name,
-    type: account.type,
+    type: account.type === "SAVINGS" ? "SAVINGS" : "CURRENT",
     balance: roundMoney(asNumber(account.balance)),
     isDefault: account.isDefault,
-    txCount: account._count.transactions,
+    txCount: Number(account.txCount),
   }));
 
-  const income = roundMoney(asNumber(incomeAgg._sum.amount));
-  const spent = roundMoney(asNumber(spentAgg._sum.amount));
-  const byCategory = groupByCategory(
-    categoryRows.map((row) => ({
-      category: row.category,
-      amount: asNumber(row._sum.amount),
-    })),
-  ).map((row) => ({ ...row, amount: roundMoney(row.amount) }));
+  let income = 0;
+  let spent = 0;
+  const expenseCategories: { category: string; amount: number }[] = [];
+  for (const row of monthRows as SumSql[]) {
+    const amount = asNumber(row.total);
+    if (row.type === "INCOME") income += amount;
+    else if (row.type === "EXPENSE") {
+      spent += amount;
+      expenseCategories.push({ category: row.category, amount });
+    }
+  }
+  income = roundMoney(income);
+  spent = roundMoney(spent);
+  const byCategory = groupByCategory(expenseCategories).map((row) => ({
+    ...row,
+    amount: roundMoney(row.amount),
+  }));
 
   const flow = buildFlow(
     now,
-    flowRows.map((row) => ({
-      month: monthLabel(row.month),
+    (flowRows as FlowSql[]).map((row) => ({
+      month: String(row.month).slice(0, 7),
       type: row.type === "INCOME" ? "INCOME" : "EXPENSE",
       amount: asNumber(row.total),
     })),
@@ -178,10 +210,25 @@ export const getDashboardViewModel = cache(async (): Promise<DashboardViewModel>
     expense: roundMoney(point.expense),
   }));
 
-  const recent: DashboardViewModel["recent"] = { all: recentAll.map(mapRecent) };
-  for (const [id, rows] of perAccount) recent[id] = rows;
+  const perAccount = new Map<string, DashboardTx[]>();
+  const all: DashboardTx[] = [];
+  for (const row of recentRows as RecentSql[]) {
+    const tx = mapRecent(row);
+    if (Number(row.rn_all) <= 5) all.push(tx);
+    if (Number(row.rn_account) <= 5) {
+      const list = perAccount.get(row.accountId);
+      if (list) list.push(tx);
+      else perAccount.set(row.accountId, [tx]);
+    }
+  }
+  all.sort(byRecent);
+  for (const list of perAccount.values()) list.sort(byRecent);
+
+  const recent: DashboardViewModel["recent"] = { all };
+  for (const account of accounts) recent[account.id] = perAccount.get(account.id) ?? [];
 
   const daysLeft = daysLeftInMonth(bounds.dayOfMonth, bounds.daysInMonth);
+  const budgetRow = budgetRows[0];
   const budget = budgetRow
     ? {
         amount: roundMoney(asNumber(budgetRow.amount)),
@@ -200,4 +247,10 @@ export const getDashboardViewModel = cache(async (): Promise<DashboardViewModel>
     recent,
     budget,
   };
+}
+
+export const getDashboardViewModel = cache(async (): Promise<DashboardViewModel> => {
+  const user = await ensureUser();
+  if (!user) throw new Error("User not found");
+  return buildDashboardViewModel(user.id);
 });

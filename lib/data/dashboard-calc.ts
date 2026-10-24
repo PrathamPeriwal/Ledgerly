@@ -1,10 +1,10 @@
-export type FlowRow = {
+type FlowRow = {
   month: string;
   type: "INCOME" | "EXPENSE";
   amount: number;
 };
 
-export type CategoryRow = {
+type CategoryRow = {
   category: string;
   amount: number;
 };

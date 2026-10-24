@@ -139,7 +139,13 @@ export default async function middleware(req, event) {
     cleaned.headers.set("Cache-Control", "no-store");
     return cleaned;
   }
-  const run = isDemoRoute(req) || arcjetMode === "DRY_RUN" ? clerk : shielded;
+  const path = req.nextUrl.pathname;
+  const needsArcjet =
+    path.startsWith("/api/") ||
+    path === "/demo" ||
+    path.startsWith("/demo/") ||
+    req.method !== "GET";
+  const run = arcjetMode === "DRY_RUN" || !needsArcjet ? clerk : shielded;
   const res = await run(req, event);
   if (res && isProtectedRoute(req)) res.headers.set("Cache-Control", "no-store");
   return res;

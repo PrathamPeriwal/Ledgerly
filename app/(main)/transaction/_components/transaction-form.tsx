@@ -8,7 +8,7 @@ import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createTransaction, updateTransaction } from "@/actions/transaction";
-import { transactionSchema } from "@/app/lib/schema";
+import { transactionSchema } from "@/lib/validation/transaction";
 import { ReceiptPanel } from "@/components/receipt-panel";
 import { TiltedTag } from "@/components/fx/TiltedTag";
 import { Button as ButtonRoot } from "@/components/ui/button";
@@ -189,7 +189,7 @@ export function TransactionForm({
 
   const fetched = useFetch(editMode ? updateTransaction : createTransaction);
   const saving = Boolean(fetched.loading);
-  const result = fetched.data as { success?: boolean; data?: { accountId?: string } } | undefined;
+  const result = fetched.data as { success?: boolean; data?: { accountId?: string }; error?: string } | undefined;
   const type = watch("type");
   const category = watch("category");
   const accountId = watch("accountId");
@@ -204,6 +204,7 @@ export function TransactionForm({
   }, []);
 
   useEffect(() => {
+    if (result?.success === false && !saving) toast.error(result.error || "Could not save transaction");
     if (result?.success && result.data?.accountId && !saving) {
       toast.success("TRANSACTION SAVED");
       reset();
@@ -448,3 +449,5 @@ export function TransactionForm({
     </form>
   );
 }
+
+

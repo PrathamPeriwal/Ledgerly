@@ -6,7 +6,7 @@ const FACTS = [
   ["POSTGRES + PRISMA", "Hosted on Supabase."],
   ["CLERK", "Email, password and OAuth sign-in."],
   ["INNGEST", "Recurring transactions and monthly reports run as background jobs."],
-  ["GEMINI 2.5 FLASH", "Reads receipts and drafts insights."],
+  ["GEMINI 3.8 FLASH", "Reads receipts and drafts insights."],
   ["ARCJET", "Bot and abuse protection."],
 ] as const;
 
