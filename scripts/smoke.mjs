@@ -159,6 +159,7 @@ async function main() {
       "check-budget-alerts",
       "process-budget-alert",
       "process-monthly-report",
+      "demo-reset",
     ];
     const inngestRes = await fetch(`${base}/api/inngest`, { headers, redirect: "manual" });
     const inngestText = await inngestRes.text();
