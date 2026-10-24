@@ -2,7 +2,7 @@
 description: Git and safety workflow for the Ledgerly revamp
 alwaysApply: true
 ---
-- Work only on the "revamp" branch. Never commit to or push main.
+- Work only on the "revamp" branch. Never push commits to main. main changes only through a pull request created with gh pr create and merged with gh pr merge --merge, only when I explicitly ask for a release; never --squash, --rebase or --delete-branch (the revamp branch stays). After a merge: git switch revamp; git pull --ff-only origin main; push tags only.
 - One phase = one commit (or a small series) with message "phase <ID>: <summary>". Before committing run lint, the TypeScript check (once TS is set up) and "next build". If anything fails, fix it or report it; do not commit a broken build silently.
 - After each phase commit, create the tag "phase-<ID>" and push the branch and tags if a remote exists.
 - Never run git push --force, git reset --hard, git clean -fd, or rewrite history unless I explicitly ask.
