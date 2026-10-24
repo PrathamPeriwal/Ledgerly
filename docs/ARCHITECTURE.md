@@ -27,7 +27,7 @@ The per-item functions (`process-*`) are event-driven, retried, and do the real 
 
 ## AI
 
-All Gemini calls go through `lib/ai/gemini.ts` (one client factory built on `@google/genai`, with a hard timeout). The model id comes from `lib/ai/config.ts`: `GEMINI_MODEL`, default `gemini-3.8-flash`.
+All Gemini calls go through `lib/ai/gemini.ts` (one client factory built on `@google/genai`). `generateWithFallback` tries the chain from `lib/ai/config.ts` (`GEMINI_MODEL`, `GEMINI_FALLBACK_MODELS`; defaults `gemini-3.5-flash-lite`, then `gemini-3.6-flash`) with a real AbortSignal per attempt (12 s) and a 24 s total budget for receipts. Receipt calls use minimal thinking. `npm run check:gemini` probes each model once.
 
 - Receipt scan (`app/api/scan-receipt/route.js`): image in, structured JSON out (JSON schema with a category enum), 25 s timeout. Arcjet limits per user, per IP and for the shared demo, plus Clerk auth, run before any model call.
 - Monthly insights (`lib/services/monthly-report.ts`): text only, 20 s timeout, two attempts, then three plain sentences built from the stats.

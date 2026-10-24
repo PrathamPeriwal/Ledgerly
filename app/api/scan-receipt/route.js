@@ -3,8 +3,9 @@ import { fixedWindow, request } from "@arcjet/next";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { defaultCategories } from "@/data/categories";
 import aj from "@/lib/arcjet";
-import { RECEIPT_TIMEOUT_MS } from "@/lib/ai/config";
-import { generateGeminiText } from "@/lib/ai/gemini";
+import { RECEIPT_PER_ATTEMPT_MS, RECEIPT_TOTAL_MS } from "@/lib/ai/config";
+import { GeminiChainError, generateGeminiResult } from "@/lib/ai/gemini";
+import { receiptJsonSchema } from "@/lib/ai/receipt-schema.mjs";
 import { isDemoEmail } from "@/lib/send-email";
 
 const scanByUser = aj.withRule(
@@ -29,6 +30,8 @@ function scanLimited(decision) {
 }
 
 export const runtime = "nodejs";
+// Hobby with Fluid compute allows up to 300 s (Vercel docs); the scan chain needs 24 s at most.
+export const maxDuration = 30;
 
 const ALLOWED_RECEIPT_TYPES = new Set([
   "image/jpeg",
@@ -136,19 +139,8 @@ export async function POST(req) {
       );
     }
 
-    const categoryIds = defaultCategories.map((category) => category.id);
     const today = new Date().toISOString().slice(0, 10);
-    const jsonSchema = {
-      type: "object",
-      properties: {
-        amount: { type: "number" },
-        date: { type: ["string", "null"], description: "YYYY-MM-DD, or null when the receipt shows no date" },
-        description: { type: "string" },
-        merchantName: { type: "string" },
-        category: { type: "string", enum: categoryIds },
-      },
-      required: ["amount", "date", "description", "merchantName", "category"],
-    };
+    const jsonSchema = receiptJsonSchema();
 
     const prompt = `
 Today is ${today}.
@@ -159,14 +151,33 @@ category must be one of these ids:
 ${categoryGuide()}
 `;
 
-    const text = await generateGeminiText({
-      contents: [{ text: prompt }, { inlineData: { data: base64, mimeType } }],
-      timeoutMs: RECEIPT_TIMEOUT_MS,
-      jsonSchema,
-    });
-    const cleaned = text.replace(/```(?:json)?|```/g, "").trim();
+    let result;
+    try {
+      result = await generateGeminiResult({
+        contents: [{ text: prompt }, { inlineData: { data: base64, mimeType } }],
+        perAttemptMs: RECEIPT_PER_ATTEMPT_MS,
+        totalMs: RECEIPT_TOTAL_MS,
+        jsonSchema,
+      });
+    } catch (error) {
+      if (!(error instanceof GeminiChainError)) throw error;
+      console.error("[scan-receipt]", error.attempts.map((a) => `${a.model}:${a.status}:${a.ms}ms`).join(" "));
+      return NextResponse.json(
+        { error: "SCANNER_BUSY" },
+        { status: 503, headers: { "Retry-After": "30" } },
+      );
+    }
+    console.info("[scan-receipt] ok", result.model, result.attempts.length);
 
-    return NextResponse.json(normalizedReceipt(JSON.parse(cleaned || "{}")));
+    let parsed;
+    try {
+      const cleaned = result.text.replace(/```(?:json)?|```/g, "").trim();
+      parsed = JSON.parse(cleaned || "{}");
+    } catch {
+      return NextResponse.json({ error: "UNREADABLE" }, { status: 422 });
+    }
+
+    return NextResponse.json(normalizedReceipt(parsed));
   } catch (err) {
     return NextResponse.json(
       { error: err.message || "Gemini error" },

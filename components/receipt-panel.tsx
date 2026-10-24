@@ -9,6 +9,7 @@ import { mapScanReceipt, type MappedScan } from "@/lib/scan-mapping";
 type Status = "idle" | "scanning" | "review" | "error";
 
 const READ_FAILED = "COULDN'T READ THAT RECEIPT. ENTER IT BY HAND.";
+const SCAN_BUSY = "THE SCANNER IS BUSY. TRY AGAIN IN A MINUTE OR ENTER IT BY HAND.";
 const SCAN_LIMIT = "SCAN LIMIT REACHED. TRY AGAIN LATER. YOU CAN STILL ENTER THE TRANSACTION BY HAND.";
 
 export function ReceiptPanel({
@@ -57,9 +58,10 @@ export function ReceiptPanel({
       onApply(mapped);
     } catch (error) {
       const limited = error instanceof Error && error.name === "ScanLimitError";
-      setFailure(limited ? SCAN_LIMIT : READ_FAILED);
+      const busy = error instanceof Error && error.name === "ScannerBusyError";
+      setFailure(limited ? SCAN_LIMIT : busy ? SCAN_BUSY : READ_FAILED);
       setStatus("error");
-      if (!limited) toast.error(READ_FAILED);
+      if (!limited && !busy) toast.error(READ_FAILED);
     } finally {
       onScanningChange(false);
     }
@@ -138,7 +140,18 @@ export function ReceiptPanel({
       ) : (
         <div>
           {status === "error" ? (
-            <p className="label mb-3 border-l-[3px] border-[#FF5F14] pl-2">{failure}</p>
+            <div className="mb-3 space-y-3">
+              <p className="label border-l-[3px] border-[#FF5F14] pl-2">{failure}</p>
+              {failure === SCAN_BUSY ? (
+                <button
+                  type="button"
+                  className="label h-10 border-[2px] border-[#1A1B1C] bg-white px-3"
+                  onClick={() => inputRef.current?.click()}
+                >
+                  SCAN AGAIN
+                </button>
+              ) : null}
+            </div>
           ) : null}
           <label
             htmlFor={inputId}

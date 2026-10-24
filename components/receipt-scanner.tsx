@@ -46,6 +46,11 @@ export async function uploadReceipt(file: File) {
     error.name = "ScanLimitError";
     throw error;
   }
+  if (response.status === 503 && (json as { error?: unknown } | null)?.error === "SCANNER_BUSY") {
+    const error = new Error("SCANNER_BUSY");
+    error.name = "ScannerBusyError";
+    throw error;
+  }
   if (!response.ok || json == null || typeof json !== "object") {
     throw new Error(String(response.status || "scan"));
   }

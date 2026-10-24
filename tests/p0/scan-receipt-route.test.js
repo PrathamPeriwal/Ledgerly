@@ -97,9 +97,10 @@ describe("POST /api/scan-receipt", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(RECEIPT);
     const call = generateContent.mock.calls[0][0];
-    expect(call.model).toBe("gemini-3.8-flash");
+    expect(call.model).toBe("gemini-3.5-flash-lite");
     expect(call.config.responseMimeType).toBe("application/json");
-    expect(call.config.httpOptions.timeout).toBe(25_000);
+    expect(call.config.abortSignal).toBeInstanceOf(AbortSignal);
+    expect(call.config.thinkingConfig.thinkingLevel).toBe("MINIMAL");
     expect(call.config.responseJsonSchema.properties.category.enum).toEqual(
       expect.arrayContaining(["groceries", "food", "transportation"])
     );
@@ -160,5 +161,44 @@ describe("POST /api/scan-receipt", () => {
     expect(denied.status).toBe(429);
     expect(await denied.json()).toEqual({ error: "SCAN LIMIT REACHED. TRY AGAIN LATER." });
     expect(generateContent).not.toHaveBeenCalled();
+  });
+
+  it("returns 503 SCANNER_BUSY with Retry-After when every model fails", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    generateContent.mockRejectedValue(Object.assign(new Error("high demand"), { status: 503 }));
+
+    const res = await POST(request(image(Buffer.from("tiny"), "image/png")));
+
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: "SCANNER_BUSY" });
+    expect(res.headers.get("Retry-After")).toBe("30");
+    expect(generateContent.mock.calls.map((c) => c[0].model)).toEqual([
+      "gemini-3.5-flash-lite",
+      "gemini-3.6-flash",
+      "gemini-3.5-flash-lite",
+    ]);
+    expect(err).toHaveBeenCalledWith("[scan-receipt]", expect.stringContaining("gemini-3.5-flash-lite:503"));
+    err.mockRestore();
+  });
+
+  it("falls back to the second model on a 503", async () => {
+    generateContent
+      .mockRejectedValueOnce(Object.assign(new Error("busy"), { status: 503 }))
+      .mockResolvedValueOnce({ text: JSON.stringify(RECEIPT) });
+
+    const res = await POST(request(image(Buffer.from("tiny"), "image/png")));
+
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual(RECEIPT);
+    expect(generateContent).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns 422 UNREADABLE for unparseable model output", async () => {
+    generateContent.mockResolvedValue({ text: "not json at all" });
+
+    const res = await POST(request(image(Buffer.from("tiny"), "image/png")));
+
+    expect(res.status).toBe(422);
+    expect(await res.json()).toEqual({ error: "UNREADABLE" });
   });
 });
