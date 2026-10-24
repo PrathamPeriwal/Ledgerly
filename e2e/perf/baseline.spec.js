@@ -5,7 +5,7 @@ import { clerk } from "@clerk/testing/playwright";
 import { expect, test } from "@playwright/test";
 
 const users = [
-  { key: "Omar", email: "omar@example.com" },
+  { key: "Lucas", email: "lucas@example.com" },
   { key: "Maya", email: "maya@example.com" },
 ];
 

@@ -15,6 +15,6 @@ alwaysApply: true
 ## Testing (lean)
 - Default check before a commit: "npm run check" (lint + typecheck + build). That is enough for UI-only phases; write no new tests for them.
 - Run Vitest only if you changed code covered by tests/. Add unit tests only when a phase changes logic.
-- Run "npm run test:e2e:quick" (Maya only: dashboard and her default account page, fail on page errors or 5xx) only when a phase changes data fetching, auth or routing. Never run the full six-user suite or the perf baseline unless I ask.
+- Run "npm run test:e2e:quick" (Maya only: dashboard and her default account page, fail on page errors or 5xx) only when a phase changes data fetching, auth or routing. Never run the full five-user suite or the perf baseline unless I ask.
 - Tests may write to the database only for demo users and must restore what they change. Never delete or skip a test to get green.
 - Put something under NEEDS HUMAN only if it truly cannot be automated.

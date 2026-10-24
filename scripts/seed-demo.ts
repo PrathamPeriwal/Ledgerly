@@ -4,7 +4,7 @@
 //   npm run seed:demo -- --confirm --allow-live
 //
 // --confirm wipes transactions, budgets, accounts, and users, then inserts
-// the six personas. It never deletes a Clerk user.
+// the five personas. It deletes only the Clerk users in REMOVED_DEMO_EMAILS.
 
 import { createClerkClient } from "@clerk/backend";
 import { PrismaClient } from "@prisma/client";
@@ -25,6 +25,7 @@ import { DEMO_EMAIL_DOMAIN, PERSONAS, personaByKey, type PersonaKey } from "../l
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CHUNK = 500;
 const KNOWN_ARGS = new Set(["--confirm", "--allow-live"]);
+const REMOVED_DEMO_EMAILS = ["omar@example.com"];
 
 type Identity = {
   key: PersonaKey;
@@ -73,6 +74,22 @@ function databaseHost(connectionString: string | undefined) {
   } catch {
     return "(DIRECT_URL could not be parsed)";
   }
+}
+
+function maskEmail(email: string) {
+  const at = email.lastIndexOf("@");
+  const local = at === -1 ? email : email.slice(0, at);
+  const domain = at === -1 ? "" : email.slice(at);
+  return `${local.slice(0, 2)}***${domain}`;
+}
+
+function demoEmailSet() {
+  return new Set(
+    PERSONAS.flatMap((persona) => [
+      persona.email.toLowerCase(),
+      persona.email.replace(`@${DEMO_EMAIL_DOMAIN}`, "@example.com").toLowerCase(),
+    ]),
+  );
 }
 
 function clerkKeyKind(secret: string | undefined) {
@@ -223,6 +240,7 @@ function printPlan(
     today: Date;
     counts: Record<string, number>;
     blockers: string[];
+    nonDemo: { count: number; masked: string[] };
   },
 ) {
   console.log(meta.confirm ? "seed:demo result" : "seed:demo DRY RUN — nothing will be written");
@@ -236,6 +254,10 @@ function printPlan(
   console.log("Current rows");
   for (const [table, count] of Object.entries(meta.counts)) console.log(`  ${table.padEnd(14)} ${count}`);
   console.log("");
+  console.log(`Non-demo users: ${meta.nonDemo.count} (a confirm wipe deletes every application user)`);
+  if (meta.nonDemo.masked.length === 0) console.log("  (none)");
+  for (const email of meta.nonDemo.masked) console.log(`  ${email}`);
+  console.log("");
   if (meta.blockers.length > 0) {
     console.log("Confirm would be refused:");
     for (const blocker of meta.blockers) console.log(`  - ${blocker}`);
@@ -243,7 +265,8 @@ function printPlan(
   }
   console.log("Wipe plan (only with --confirm)");
   console.log("  delete transactions, budgets, accounts, users in one transaction");
-  console.log("  Clerk users are created or updated, never deleted");
+  console.log("  Clerk users for the five personas are created or updated");
+  console.log(`  Clerk delete only: ${REMOVED_DEMO_EMAILS.join(", ")}`);
   console.log("");
   const total = identities.reduce((sum, identity) => sum + (plans.get(identity.key)?.transactions.length ?? 0), 0);
   console.log(`Planned personas (${total} transactions)`);
@@ -251,11 +274,10 @@ function printPlan(
   console.log("");
   console.log("Notes");
   console.log("  Recurring templates are the latest occurrence. Earlier months are \"<Name> (Recurring)\" rows.");
-  console.log("  Weekly payroll is a completed row every Friday, funded by a transfer. Cafe rent is the MONTHLY template.");
   console.log("  Daniel's Business Checking October expenses are 90% of his ₹70,000.00 budget.");
   console.log("  Priya's October expenses are 115% of her ₹30,000.00 budget.");
   console.log("  Those two totals stay put for the whole local day: nothing that counts is dated on the 1st.");
-  console.log("  --confirm replaces every application row. It does not delete Clerk users.");
+  console.log("  --confirm replaces every application row and deletes only the retired Clerk user omar@example.com.");
 }
 
 function printPersona(identity: Identity, data: DemoData | undefined, now: Date) {
@@ -329,6 +351,7 @@ type ClerkApi = {
       skipLegalChecks: boolean;
     }) => Promise<ClerkUser>;
     getUser: (id: string) => Promise<ClerkUser>;
+    deleteUser: (id: string) => Promise<unknown>;
   };
   emailAddresses: {
     updateEmailAddress: (id: string, data: { verified: boolean; primary: boolean }) => Promise<unknown>;
@@ -363,6 +386,25 @@ async function upsertClerkUser(clerk: ClerkApi, persona: Identity, password: str
   }
   user = await clerk.users.getUser(user.id);
   return user;
+}
+
+async function deleteRemovedClerkUsers(clerk: ClerkApi) {
+  for (const email of REMOVED_DEMO_EMAILS) {
+    const list = await clerk.users.getUserList({ emailAddress: [email], limit: 10 });
+    const matches = list.data.filter((user) =>
+      user.emailAddresses.some((item) => item.emailAddress.toLowerCase() === email),
+    );
+    if (matches.length === 0) {
+      console.log(`Clerk delete ${email}: not found`);
+      continue;
+    }
+    for (const user of matches) {
+      const addresses = user.emailAddresses.map((item) => item.emailAddress.toLowerCase());
+      if (!REMOVED_DEMO_EMAILS.includes(email) || !addresses.includes(email)) continue;
+      await clerk.users.deleteUser(user.id);
+      console.log(`Clerk delete ${email}: deleted`);
+    }
+  }
 }
 
 async function ensureClerkUsers(clerk: ClerkApi, personas: Identity[], password: string): Promise<ClerkUser[]> {
@@ -553,6 +595,10 @@ async function main() {
       prisma.transaction.count(),
       prisma.budget.count(),
     ]);
+    const people = await prisma.user.findMany({ select: { email: true }, orderBy: { email: "asc" } });
+    const demoEmails = demoEmailSet();
+    const outsiders = people.filter((person) => !demoEmails.has(person.email.toLowerCase()));
+    const nonDemo = { count: outsiders.length, masked: outsiders.map((person) => maskEmail(person.email)) };
     const identities: Identity[] = PERSONAS.map((persona) => ({
       key: persona.key,
       firstName: persona.firstName,
@@ -572,6 +618,7 @@ async function main() {
       confirm,
       counts: { users, accounts, transactions, budgets },
       blockers: [] as string[],
+      nonDemo,
     };
     meta.blockers = confirmBlockers(meta);
     if (!confirm) {
@@ -580,18 +627,19 @@ async function main() {
     }
     if (meta.blockers.length > 0) throw new Error(`Refusing to seed:\n${meta.blockers.map((item) => `- ${item}`).join("\n")}`);
 
-    console.log(`Seeding ${meta.host} (${meta.keyKind}). Clerk users will not be deleted.`);
+    console.log(`Seeding ${meta.host} (${meta.keyKind}).`);
     const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
     const clerkUsers = await ensureClerkUsers(clerk as unknown as ClerkApi, identities, process.env.DEMO_USER_PASSWORD ?? "");
     await writePersonas(prisma, identities, clerkUsers, plans);
     await verifyDatabase(prisma, identities, plans, now, categories);
+    await deleteRemovedClerkUsers(clerk as unknown as ClerkApi);
     printPlan(plans, identities, now, { ...meta, blockers: [] });
     console.log("");
     console.log("Credentials");
     console.log("email                         password");
     for (const identity of identities) console.log(`${identity.email.padEnd(29)} ${process.env.DEMO_USER_PASSWORD}`);
     console.log("");
-    console.log("seed:demo wrote the six demo personas");
+    console.log("seed:demo wrote the five demo personas");
   } finally {
     await prisma.$disconnect();
   }

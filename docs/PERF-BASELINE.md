@@ -34,3 +34,5 @@ Measured on 24 Oct 2026, 23:59 IST from this machine against production at `v1.1
 | Maya | / | 97 | 2140 | 4531 | 2436 | 312008 | 32 | +132% | +19% | +33% |
 | Maya | /dashboard | 149 | 1219 | 6977 | 1256 | 362382 | 37 | +2% | −26% | +9% |
 | Maya | /account/3e1180b5-7ce6-4bec-b0c0-4921a01f4f53 | 59 | 728 | 842 | 764 | 462242 | 43 | −81% | −83% | +54% |
+
+Omar's 3,000-transaction account was retired from the demo set after these measurements. The numbers above are historical.

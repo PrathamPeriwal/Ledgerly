@@ -31,7 +31,7 @@ describe("sendEmail demo guard", () => {
 
   it("skips a seeded example.com demo address and does not call Resend", async () => {
     const result = await sendEmail({
-      to: "Omar@example.com",
+      to: "Lucas@example.com",
       subject: "Monthly report",
       react: null,
     });

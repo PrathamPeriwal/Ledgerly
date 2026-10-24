@@ -107,17 +107,18 @@ test("maya default account filters, pages, and opens the user menu", async ({ pa
   assertClean(errors);
 });
 
-test("omar business operating page is paginated", async ({ page }) => {
-  test.setTimeout(120000);
-  page.setDefaultNavigationTimeout(60000);
+test("lucas joint checking page is paginated", async ({ page }) => {
+  test.setTimeout(90000);
+  page.setDefaultNavigationTimeout(45000);
   const errors = watch(page);
-  await signIn(page, "omar@example.com");
-  const id = await accountId("omar@example.com", { name: "Business Operating" });
-  await page.goto(`/account/${id}?range=all`, { timeout: 60000, waitUntil: "domcontentloaded" });
+  await signIn(page, "lucas@example.com");
+  const id = await accountId("lucas@example.com", { name: "Joint Checking" });
+  await page.goto(`/account/${id}?range=all`, { timeout: 45000, waitUntil: "domcontentloaded" });
   await expect(rows(page)).toHaveCount(15, { timeout: 20000 });
   const footer = await page.getByTestId("tx-footer").innerText();
   const total = Number(footer.match(/OF\s+([\d,]+)/)?.[1].replace(/,/g, ""));
-  expect(total).toBeGreaterThan(2000);
+  expect(total).toBeGreaterThan(240);
+  expect(total).toBeLessThan(330);
   const before = (await rows(page).first().innerText()).replace(/\s+/g, " ").trim();
   await page.getByRole("button", { name: "NEXT", exact: true }).click();
   await expect(page).toHaveURL(/page=2/, { timeout: 15000 });
