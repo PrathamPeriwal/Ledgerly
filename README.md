@@ -1,3 +1,5 @@
+[![CI](https://github.com/PrathamPeriwal/Ledgerly/actions/workflows/ci.yml/badge.svg)](https://github.com/PrathamPeriwal/Ledgerly/actions/workflows/ci.yml)
+
 # Ledgerly
 
 Ledgerly is a personal finance app that turns receipts into reviewed transactions and shows how much of your monthly budget is left.
@@ -70,6 +72,10 @@ npm run dev
 
 Open http://localhost:3000. Every variable is described in [docs/ENV.md](docs/ENV.md).
 
+## Demo data
+
+Five personas and 992 transactions from 2026-04-01: Maya 280, Daniel 200, Priya 200, Lucas 300, Hana 12. Seeded addresses are `maya@example.com`, `daniel@example.com`, `priya@example.com`, `lucas@example.com`, and `hana@example.com`. Hana has no budget. Daniel's current month is about 90% of budget and Priya's is over 100%.
+
 ## Scripts
 
 | Script | Purpose |
@@ -80,7 +86,7 @@ Open http://localhost:3000. Every variable is described in [docs/ENV.md](docs/EN
 | `npm run typecheck` | TypeScript check only |
 | `npm run test:e2e:quick` | Playwright smoke test of the demo user's dashboard and account page (needs Clerk test keys and the seeded demo users) |
 | `npm run verify` | Lint, unit tests, build, and smoke script |
-| `npm run seed:demo` | Dry run by default. With `--confirm` it **wipes** transactions, budgets, accounts, and users in the target database; it does not delete Clerk users |
+| `npm run seed:demo` | Dry run by default. With `--confirm` it **wipes** transactions, budgets, accounts, and users in the target database, then deletes only the retired Clerk user `omar@example.com` |
 
 ## Project structure
 

@@ -68,14 +68,13 @@ test("hana sees a prompt to set a monthly budget", async ({ page }) => {
   assertClean(errors);
 });
 
-test("omar dashboard renders", async ({ page }) => {
-  test.setTimeout(120000);
-  page.setDefaultNavigationTimeout(60000);
+test("lucas dashboard renders", async ({ page }) => {
+  test.setTimeout(90000);
   const errors = watch(page);
-  await signIn(page, "omar@example.com");
-  await page.goto("/dashboard", { timeout: 60000, waitUntil: "domcontentloaded" });
-  await expect(page.getByTestId("account-card").filter({ hasText: "Business Operating" })).toBeVisible({
-    timeout: 60000,
+  await signIn(page, "lucas@example.com");
+  await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+  await expect(page.getByTestId("account-card").filter({ hasText: "Joint Checking" })).toBeVisible({
+    timeout: 20000,
   });
   assertClean(errors);
 });

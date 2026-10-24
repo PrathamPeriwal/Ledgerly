@@ -530,7 +530,7 @@ function buildMaya(today: Date, months: Month[]) {
     addSpend(persona, { account: "checking", category: "utilities", description: "Electric, water & internet", min: 125, max: 158, dates: month.dates });
     addSpend(persona, { account: "savings", type: "INCOME", category: "investments", description: "Savings interest", min: 18, max: 30, dates: month.dates });
   });
-  eachMonth(months, 9, 6, (month) =>
+  eachMonth(months, 10, 7, (month) =>
     addSpend(persona, {
       account: "checking",
       category: "groceries",
@@ -540,7 +540,7 @@ function buildMaya(today: Date, months: Month[]) {
       dates: month.dates,
     }),
   );
-  eachMonth(months, 10, 6, (month) =>
+  eachMonth(months, 11, 7, (month) =>
     addSpend(persona, {
       account: "checking",
       category: "food",
@@ -604,10 +604,10 @@ function buildDaniel(today: Date, months: Month[]) {
   const equipmentDay = may?.dates.find((date) => date.getUTCDate() === 12);
   if (!equipmentDay) throw new Error("Daniel's May equipment purchase has no date");
   addSpend(persona, { account: "business", category: "shopping", description: "Camera and lens", amountCents: dollarsToCents(1200), dates: [equipmentDay] });
-  eachMonth(months, 6, 4, (month) =>
+  eachMonth(months, 8, 5, (month) =>
     addSpend(persona, { account: "personal", category: "groceries", description: "Grocery run", min: 40, max: 120, dates: month.dates }),
   );
-  eachMonth(months, 8, 5, (month) =>
+  eachMonth(months, 10, 6, (month) =>
     addSpend(persona, {
       account: "personal",
       category: "food",
@@ -617,7 +617,7 @@ function buildDaniel(today: Date, months: Month[]) {
       dates: month.dates,
     }),
   );
-  eachMonth(months, 3, 2, (month) =>
+  eachMonth(months, 4, 3, (month) =>
     addSpend(persona, { account: "personal", category: "transportation", description: "Rideshare", min: 9, max: 28, dates: month.dates }),
   );
   fitOctober(persona, "business", DANIEL_MONTH_CENTS, today);
@@ -641,7 +641,7 @@ function buildPriya(today: Date, months: Month[]) {
   eachMonth(months, 3, 2, (month) =>
     addSpend(persona, { account: "checking", type: "INCOME", category: "freelance", description: "Tutoring session", min: 60, max: 120, dates: month.dates }),
   );
-  eachMonth(months, 8, 4, (month) =>
+  eachMonth(months, 7, 3, (month) =>
     addSpend(persona, {
       account: "checking",
       category: "groceries",
@@ -652,7 +652,7 @@ function buildPriya(today: Date, months: Month[]) {
       dates: monthDates(month, { safeOnly: month.partial }),
     }),
   );
-  eachMonth(months, 12, 6, (month) =>
+  eachMonth(months, 9, 5, (month) =>
     addSpend(persona, {
       account: "checking",
       category: "food",
@@ -663,7 +663,7 @@ function buildPriya(today: Date, months: Month[]) {
       dates: monthDates(month, { safeOnly: month.partial }),
     }),
   );
-  eachMonth(months, 10, 6, (month) =>
+  eachMonth(months, 7, 4, (month) =>
     addSpend(persona, {
       account: "checking",
       category: "transportation",
@@ -719,7 +719,7 @@ function buildLucas(today: Date, months: Month[]) {
   for (const date of weekdayDates(today, 2)) {
     addSpend(persona, { account: "joint", category: "transportation", description: "Fuel", min: 42, max: 78, dates: [date] });
   }
-  eachMonth(months, 6, 4, (month) =>
+  eachMonth(months, 1, 1, (month) =>
     addSpend(persona, {
       account: "kids",
       category: "entertainment",
@@ -729,13 +729,13 @@ function buildLucas(today: Date, months: Month[]) {
       dates: month.dates,
     }),
   );
-  eachMonth(months, 1, 1, (month) =>
+  eachMonth(months, 4, 2, (month) =>
     addSpend(persona, { account: "joint", category: "healthcare", description: "Clinic visit", min: 40, max: 180, dates: month.dates }),
   );
-  eachMonth(months, 4, 3, (month) =>
+  eachMonth(months, 11, 6, (month) =>
     addSpend(persona, { account: "joint", category: "food", description: "Family dinner", min: 28, max: 90, dates: month.dates }),
   );
-  eachMonth(months, 3, 2, (month) =>
+  eachMonth(months, 8, 5, (month) =>
     addSpend(persona, { account: "joint", category: "shopping", description: "Household goods", min: 25, max: 140, dates: month.dates }),
   );
   padTo(persona, personaByKey("lucas").target, {
@@ -744,61 +744,6 @@ function buildLucas(today: Date, months: Month[]) {
     descriptions: ["School lunch", "Pharmacy", "Household supplies", "Parking"],
     min: 6,
     max: 42,
-    dates: eachDay(today),
-  });
-  return persona;
-}
-
-function buildOmar(today: Date, months: Month[]) {
-  const persona = makePersona(personaByKey("omar"), today);
-  const saleNames = ["Latte", "Drip coffee", "Espresso", "Cappuccino", "Tea", "Muffin", "Sandwich", "Bagel", "Croissant", "Cookie", "Iced latte", "Pastry"];
-  for (const date of eachDay(today)) {
-    const sales = randomInt(persona.rand, 8, 11);
-    for (let i = 0; i < sales; i += 1) {
-      addSpend(persona, {
-        account: "operating",
-        type: "INCOME",
-        category: "business",
-        description: `Sale: ${pick(persona.rand, saleNames)}`,
-        min: 8,
-        max: 45,
-        bias: "high",
-        dates: [date],
-      });
-    }
-  }
-  const supplierNames = ["Coffee supplier", "Dairy supplier", "Bakery supplier", "Produce supplier"];
-  for (const weekday of [1, 3, 6]) {
-    for (const date of weekdayDates(today, weekday)) {
-      addSpend(persona, {
-        account: "operating",
-        category: "shopping",
-        description: pick(persona.rand, supplierNames),
-        min: 120,
-        max: 900,
-        bias: "low",
-        dates: [date],
-      });
-    }
-  }
-  for (const date of weekdayDates(today, 5)) {
-    addSpend(persona, { account: "operating", category: "other-expense", description: "Transfer to Payroll", amountCents: dollarsToCents(1450), dates: [date] });
-    addSpend(persona, { account: "payroll", type: "INCOME", category: "other-income", description: "Transfer from Operating", amountCents: dollarsToCents(1450), dates: [date] });
-    addSpend(persona, { account: "payroll", category: "bills", description: "Weekly payroll", amountCents: dollarsToCents(1450), dates: [date] });
-  }
-  addMonthly(persona, { name: "Cafe rent", day: 1, amountCents: dollarsToCents(1900), type: "EXPENSE", category: "housing", account: "operating" });
-  eachMonth(months, 1, 1, (month) =>
-    addSpend(persona, { account: "operating", category: "utilities", description: "Gas & electric", min: 260, max: 420, dates: month.dates }),
-  );
-  for (const date of weekdayDates(today, 4)) {
-    addSpend(persona, { account: "operating", category: "transportation", description: "Fuel", min: 38, max: 72, dates: [date] });
-  }
-  padTo(persona, personaByKey("omar").target, {
-    account: "operating",
-    categories: ["shopping", "bills", "other-expense"],
-    descriptions: ["Cups and lids", "Ice", "Cleaning supplies", "Napkins", "Takeout boxes"],
-    min: 4,
-    max: 18,
     dates: eachDay(today),
   });
   return persona;
@@ -832,7 +777,6 @@ function buildOne(key: PersonaKey, today: Date) {
   if (key === "daniel") return buildDaniel(today, months);
   if (key === "priya") return buildPriya(today, months);
   if (key === "lucas") return buildLucas(today, months);
-  if (key === "omar") return buildOmar(today, months);
   return buildHana(today);
 }
 

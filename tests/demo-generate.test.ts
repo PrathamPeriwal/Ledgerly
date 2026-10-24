@@ -22,6 +22,17 @@ function pack(data: DemoData) {
 }
 
 describe("generatePersonaData", () => {
+  it("keeps five personas near one thousand transactions", () => {
+    expect(PERSONAS.map((persona) => [persona.key, persona.target])).toEqual([
+      ["maya", 280],
+      ["daniel", 200],
+      ["priya", 200],
+      ["lucas", 300],
+      ["hana", 12],
+    ]);
+    expect(PERSONAS.reduce((sum, persona) => sum + persona.target, 0)).toBe(992);
+  });
+
   it("is deterministic and keeps every persona reconcilable", () => {
     for (const persona of PERSONAS) {
       const first = generatePersonaData(persona.key, TODAY);

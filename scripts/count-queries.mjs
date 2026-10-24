@@ -6,7 +6,7 @@ import { PrismaClient } from "@prisma/client";
 
 const PORT = 3100;
 const ORIGIN = `http://127.0.0.1:${PORT}`;
-const USERS = ["maya@example.com", "omar@example.com"];
+const USERS = ["maya@example.com", "lucas@example.com"];
 
 function loadEnv(file) {
   if (!existsSync(file)) return;

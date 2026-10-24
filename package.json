@@ -17,7 +17,8 @@
     "test:e2e": "playwright test",
     "verify": "npm run lint && npm run test && npm run build && npm run test:smoke",
     "email": "email dev",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "check:gemini": "node --experimental-strip-types scripts/check-gemini.ts"
   },
   "dependencies": {
     "@arcjet/next": "^1.0.0-alpha.34",

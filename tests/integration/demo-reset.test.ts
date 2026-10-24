@@ -35,7 +35,7 @@ async function fingerprint(prisma: PrismaClient, email: string) {
 }
 
 describe.skipIf(!directUrl)("demo reset integration (Maya, DIRECT_URL)", () => {
-  it("resets Maya twice and leaves Hana and Omar untouched", async () => {
+  it("resets Maya twice and leaves Hana and Lucas untouched", async () => {
     process.env.DIRECT_URL = directUrl;
     process.env.DATABASE_URL = directUrl;
     const previousEmail = process.env.DEMO_USER_EMAIL;
@@ -106,7 +106,7 @@ describe.skipIf(!directUrl)("demo reset integration (Maya, DIRECT_URL)", () => {
       await prisma.$executeRaw`SELECT pg_advisory_lock(hashtext('hana-integration'))`;
       await prisma.$executeRaw`SELECT pg_advisory_lock(hashtext('maya-demo-reset'))`;
       const hanaBefore = await fingerprint(prisma, "hana@example.com");
-      const omarBefore = await fingerprint(prisma, "omar@example.com");
+      const lucasBefore = await fingerprint(prisma, "lucas@example.com");
       await resetDemoUser();
 
       const expected = generatePersonaData("maya", anchorToday());
@@ -146,7 +146,7 @@ describe.skipIf(!directUrl)("demo reset integration (Maya, DIRECT_URL)", () => {
         budgets: await prisma.budget.count({ where: { userId: maya.id } }),
       }).toEqual(firstCounts);
       expect(await fingerprint(prisma, "hana@example.com")).toEqual(hanaBefore);
-      expect(await fingerprint(prisma, "omar@example.com")).toEqual(omarBefore);
+      expect(await fingerprint(prisma, "lucas@example.com")).toEqual(lucasBefore);
     } finally {
       await restore();
       if (previousEmail === undefined) delete process.env.DEMO_USER_EMAIL;

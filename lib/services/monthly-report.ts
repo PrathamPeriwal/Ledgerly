@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { INSIGHTS_TIMEOUT_MS } from "@/lib/ai/config";
+import { INSIGHTS_PER_ATTEMPT_MS, INSIGHTS_TOTAL_MS } from "@/lib/ai/config";
 import { generateGeminiText } from "@/lib/ai/gemini";
 import EmailTemplate from "@/emails/template";
 import { monthBoundsUtc, type MonthBounds } from "@/lib/data/dashboard-calc";
@@ -7,7 +7,7 @@ import { formatCurrency } from "@/lib/format";
 import { db } from "@/lib/prisma";
 import { isDemoEmail, sendEmail } from "@/lib/send-email";
 
-const INSIGHT_TIMEOUT_MS = INSIGHTS_TIMEOUT_MS;
+const INSIGHT_TIMEOUT_MS = INSIGHTS_TOTAL_MS;
 const INSIGHT_ATTEMPTS = 2;
 
 export type MonthStats = {
@@ -101,7 +101,7 @@ export async function generateFinancialInsights(stats: MonthStats, month: string
     Format the response as a JSON array of strings, like this:
     ["insight 1", "insight 2", "insight 3"]
   `;
-  const text = await generateGeminiText({ contents: prompt, timeoutMs: INSIGHT_TIMEOUT_MS });
+  const text = await generateGeminiText({ contents: prompt, perAttemptMs: INSIGHTS_PER_ATTEMPT_MS, totalMs: INSIGHT_TIMEOUT_MS, modestThinking: true });
   const cleaned = text.replace(/```(?:json)?\n?/g, "").trim();
   return JSON.parse(cleaned) as unknown;
 }

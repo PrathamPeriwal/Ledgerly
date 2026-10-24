@@ -2,7 +2,7 @@ export const AMOUNT_SCALE = 25;
 
 export const DEMO_EMAIL_DOMAIN = "ledgerly-demo.test";
 
-export const PERSONA_KEYS = ["maya", "daniel", "priya", "lucas", "omar", "hana"] as const;
+export const PERSONA_KEYS = ["maya", "daniel", "priya", "lucas", "hana"] as const;
 
 export type PersonaKey = (typeof PERSONA_KEYS)[number];
 
@@ -37,7 +37,7 @@ export const PERSONAS: readonly PersonaSpec[] = [
     lastName: "Chen",
     email: `maya@${domain}`,
     budgetDollars: 3600,
-    target: 300,
+    target: 280,
     accounts: [
       { key: "checking", name: "Everyday Checking", type: "CURRENT", isDefault: true, preferredDollars: 3200, minFinalDollars: 1500 },
       { key: "savings", name: "High-Yield Savings", type: "SAVINGS", isDefault: false, preferredDollars: 18500, minFinalDollars: 18000 },
@@ -50,7 +50,7 @@ export const PERSONAS: readonly PersonaSpec[] = [
     lastName: "Okafor",
     email: `daniel@${domain}`,
     budgetDollars: 2800,
-    target: 220,
+    target: 200,
     topUp: { category: "bills", description: "Contractor" },
     accounts: [
       { key: "business", name: "Business Checking", type: "CURRENT", isDefault: true, preferredDollars: 4500, minFinalDollars: 2500 },
@@ -65,7 +65,7 @@ export const PERSONAS: readonly PersonaSpec[] = [
     lastName: "Nair",
     email: `priya@${domain}`,
     budgetDollars: 1200,
-    target: 260,
+    target: 200,
     topUp: { category: "education", description: "Lab fee" },
     accounts: [{ key: "checking", name: "Student Checking", type: "CURRENT", isDefault: true, preferredDollars: 650, minFinalDollars: 250 }],
   },
@@ -76,24 +76,11 @@ export const PERSONAS: readonly PersonaSpec[] = [
     lastName: "Alvarez",
     email: `lucas@${domain}`,
     budgetDollars: 5400,
-    target: 380,
+    target: 300,
     accounts: [
       { key: "joint", name: "Joint Checking", type: "CURRENT", isDefault: true, preferredDollars: 4800, minFinalDollars: 2000 },
       { key: "emergency", name: "Emergency Fund", type: "SAVINGS", isDefault: false, preferredDollars: 15000, minFinalDollars: 15000 },
       { key: "kids", name: "Kids & School", type: "CURRENT", isDefault: false, preferredDollars: 1200, minFinalDollars: 400 },
-    ],
-  },
-  {
-    key: "omar",
-    seed: "omar-haddad-demo-v1",
-    firstName: "Omar",
-    lastName: "Haddad",
-    email: `omar@${domain}`,
-    budgetDollars: 18000,
-    target: 3000,
-    accounts: [
-      { key: "operating", name: "Business Operating", type: "CURRENT", isDefault: true, preferredDollars: 12000, minFinalDollars: 6000 },
-      { key: "payroll", name: "Payroll", type: "CURRENT", isDefault: false, preferredDollars: 3500, minFinalDollars: 2000 },
     ],
   },
   {

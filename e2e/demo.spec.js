@@ -19,11 +19,6 @@ const personas = [
     accounts: ["Joint Checking", "Emergency Fund", "Kids & School"],
   },
   {
-    email: "omar@example.com",
-    accounts: ["Business Operating", "Payroll"],
-    slow: true,
-  },
-  {
     email: "hana@example.com",
     accounts: ["Main Account"],
     fresh: true,

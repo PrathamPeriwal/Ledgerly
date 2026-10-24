@@ -2,7 +2,7 @@
 description: Git and safety workflow for the Ledgerly revamp
 alwaysApply: true
 ---
-- Work only on the "revamp" branch. Never commit to or push main.
+- Work only on the "revamp" branch. Never push commits to main. main changes only through a pull request created with gh pr create and merged with gh pr merge --merge, only when I explicitly ask for a release; never --squash, --rebase or --delete-branch (the revamp branch stays). After a merge: git switch revamp; git pull --ff-only origin main; push tags only.
 - One phase = one commit (or a small series) with message "phase <ID>: <summary>". Before committing run lint, the TypeScript check (once TS is set up) and "next build". If anything fails, fix it or report it; do not commit a broken build silently.
 - After each phase commit, create the tag "phase-<ID>" and push the branch and tags if a remote exists.
 - Never run git push --force, git reset --hard, git clean -fd, or rewrite history unless I explicitly ask.
@@ -15,6 +15,6 @@ alwaysApply: true
 ## Testing (lean)
 - Default check before a commit: "npm run check" (lint + typecheck + build). That is enough for UI-only phases; write no new tests for them.
 - Run Vitest only if you changed code covered by tests/. Add unit tests only when a phase changes logic.
-- Run "npm run test:e2e:quick" (Maya only: dashboard and her default account page, fail on page errors or 5xx) only when a phase changes data fetching, auth or routing. Never run the full six-user suite or the perf baseline unless I ask.
+- Run "npm run test:e2e:quick" (Maya only: dashboard and her default account page, fail on page errors or 5xx) only when a phase changes data fetching, auth or routing. Never run the full five-user suite or the perf baseline unless I ask.
 - Tests may write to the database only for demo users and must restore what they change. Never delete or skip a test to get green.
 - Put something under NEEDS HUMAN only if it truly cannot be automated.
