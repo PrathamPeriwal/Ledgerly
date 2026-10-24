@@ -24,22 +24,40 @@ Choose **Try the demo** to explore a pre-filled ledger. No sign-up needed.
 | Data | PostgreSQL with Prisma 6 |
 | Authentication | Clerk |
 | Abuse protection | Arcjet rate limiting and bot detection |
-| Background jobs | Inngest (recurring transactions, monthly reports) |
-| AI | Google Gemini for receipt extraction |
+| Background jobs | Inngest (schedule below) |
+| AI | Google Gemini via `@google/genai` (receipt extraction, monthly insights) |
 | Email | Resend |
-| Testing | Vitest, Playwright |
+| Testing | Vitest (unit), Playwright (e2e) |
+
+### Layers
+
+`actions/` (thin server actions) call `lib/services/` (writes and rules), which use Prisma inside one transaction. Server components read through `lib/data/`, where totals are grouped SQL queries. Zod schemas are in `lib/validation/`. Details and design decisions: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ### Request flow
 
 1. Clerk authenticates users. The demo button requests a short-lived ticket from `/api/demo-session` and signs into a sample ledger.
 2. A receipt image is posted to `/api/scan-receipt`; Gemini returns structured fields that pre-fill the transaction form.
-3. Accounts, transactions, and budgets are stored in Postgres via Prisma.
-4. Inngest functions create due recurring transactions and send the monthly report.
-5. Dashboard and account pages render on the server, with search and filters applied in the query.
+3. Mutations run as action, service, one database transaction (row plus balance change), then revalidation.
+4. Dashboard and account pages render on the server, with search and filters applied in the query.
+
+### Background jobs (Inngest, UTC)
+
+| Job | Schedule |
+| --- | --- |
+| Recurring transactions | daily at 00:00 |
+| Budget alerts | every 6 hours |
+| Monthly reports | 1st of the month at 00:00 |
+| Demo reset | daily at 20:00 (01:30 IST), restores the demo ledger |
+
+Each cron job fans out one event per item, so one failure does not block the others.
+
+### Scan rate limits
+
+Receipt scans are limited per hour by Arcjet: 10 per user, 15 per IP, and 6 shared across all demo sessions. Uploads are JPEG, PNG or WebP up to 5 MB. Over the limit returns HTTP 429.
 
 ## Getting started
 
-Requirements: Node.js 18+ and a PostgreSQL database.
+Requirements: Node.js 20+ and a PostgreSQL database.
 
 ```bash
 git clone https://github.com/PrathamPeriwal/Ledgerly.git
@@ -59,7 +77,8 @@ Open http://localhost:3000. Every variable is described in [docs/ENV.md](docs/EN
 | `npm run dev` | Start the development server |
 | `npm run check` | Lint, typecheck, and production build |
 | `npm test` | Unit tests (Vitest) |
-| `npm run test:e2e:quick` | Playwright smoke test of the demo user's dashboard and account page |
+| `npm run typecheck` | TypeScript check only |
+| `npm run test:e2e:quick` | Playwright smoke test of the demo user's dashboard and account page (needs Clerk test keys and the seeded demo users) |
 | `npm run verify` | Lint, unit tests, build, and smoke script |
 | `npm run seed:demo` | Dry run by default. With `--confirm` it **wipes** transactions, budgets, accounts, and users in the target database; it does not delete Clerk users |
 

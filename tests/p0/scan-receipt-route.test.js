@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { auth, currentUser, generateContent, getGenerativeModel, protect, withRule, arcjetRequest, scanRules } = vi.hoisted(() => {
+const { auth, currentUser, generateContent, protect, withRule, arcjetRequest, scanRules } = vi.hoisted(() => {
   const generateContent = vi.fn();
-  const getGenerativeModel = vi.fn(() => ({ generateContent }));
   const auth = vi.fn();
   const currentUser = vi.fn();
   const protect = vi.fn();
@@ -12,7 +11,7 @@ const { auth, currentUser, generateContent, getGenerativeModel, protect, withRul
     return { protect };
   });
   const arcjetRequest = vi.fn(async () => ({ headers: {} }));
-  return { auth, currentUser, generateContent, getGenerativeModel, protect, withRule, arcjetRequest, scanRules };
+  return { auth, currentUser, generateContent, protect, withRule, arcjetRequest, scanRules };
 });
 
 vi.mock("@clerk/nextjs/server", () => ({ auth, currentUser }));
@@ -24,9 +23,9 @@ vi.mock("@arcjet/next", () => ({
   request: arcjetRequest,
 }));
 
-vi.mock("@google/generative-ai", () => ({
-  GoogleGenerativeAI: vi.fn(function GoogleGenerativeAI() {
-    return { getGenerativeModel };
+vi.mock("@google/genai", () => ({
+  GoogleGenAI: vi.fn(function GoogleGenAI() {
+    return { models: { generateContent } };
   }),
 }));
 
@@ -51,11 +50,7 @@ function image(bytes, type) {
 }
 
 function mockReceiptText() {
-  generateContent.mockResolvedValue({
-    response: {
-      text: () => "```json\n" + JSON.stringify(RECEIPT) + "\n```",
-    },
-  });
+  generateContent.mockResolvedValue({ text: "```json\n" + JSON.stringify(RECEIPT) + "\n```" });
 }
 
 beforeEach(() => {
@@ -64,7 +59,6 @@ beforeEach(() => {
   auth.mockResolvedValue({ userId: "clerk_user" });
   currentUser.mockResolvedValue({ emailAddresses: [{ emailAddress: "ada@example.com" }] });
   protect.mockResolvedValue({ isDenied: () => false });
-  getGenerativeModel.mockReturnValue({ generateContent });
   mockReceiptText();
 });
 
@@ -102,13 +96,15 @@ describe("POST /api/scan-receipt", () => {
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual(RECEIPT);
-    const config = getGenerativeModel.mock.calls[0][0];
-    expect(config.model).toBe("gemini-2.5-flash");
-    expect(config.generationConfig.responseMimeType).toBe("application/json");
-    expect(config.generationConfig.responseSchema.properties.category.enum).toEqual(
+    const call = generateContent.mock.calls[0][0];
+    expect(call.model).toBe("gemini-3.8-flash");
+    expect(call.config.responseMimeType).toBe("application/json");
+    expect(call.config.httpOptions.timeout).toBe(25_000);
+    expect(call.config.responseJsonSchema.properties.category.enum).toEqual(
       expect.arrayContaining(["groceries", "food", "transportation"])
     );
-    const prompt = generateContent.mock.calls[0][0][0];
+    expect(call.contents[1].inlineData.mimeType).toBe("image/webp");
+    const prompt = call.contents[0].text;
     expect(prompt).toMatch(/groceries \(Groceries\): supermarkets and grocery stores/);
     expect(prompt).toMatch(/food \(Food\): restaurants, cafes, takeaway and bars/);
     expect(prompt).toMatch(/\d{4}-\d{2}-\d{2}/);

@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { fixedWindow, request } from "@arcjet/next";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { defaultCategories } from "@/data/categories";
 import aj from "@/lib/arcjet";
+import { RECEIPT_TIMEOUT_MS } from "@/lib/ai/config";
+import { generateGeminiText } from "@/lib/ai/gemini";
 import { isDemoEmail } from "@/lib/send-email";
 
 const scanByUser = aj.withRule(
@@ -135,26 +136,19 @@ export async function POST(req) {
       );
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     const categoryIds = defaultCategories.map((category) => category.id);
     const today = new Date().toISOString().slice(0, 10);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "object",
-          properties: {
-            amount: { type: "number" },
-            date: { type: "string", nullable: true, description: "YYYY-MM-DD, or null when the receipt shows no date" },
-            description: { type: "string" },
-            merchantName: { type: "string" },
-            category: { type: "string", enum: categoryIds },
-          },
-          required: ["amount", "date", "description", "merchantName", "category"],
-        },
+    const jsonSchema = {
+      type: "object",
+      properties: {
+        amount: { type: "number" },
+        date: { type: ["string", "null"], description: "YYYY-MM-DD, or null when the receipt shows no date" },
+        description: { type: "string" },
+        merchantName: { type: "string" },
+        category: { type: "string", enum: categoryIds },
       },
-    });
+      required: ["amount", "date", "description", "merchantName", "category"],
+    };
 
     const prompt = `
 Today is ${today}.
@@ -165,17 +159,11 @@ category must be one of these ids:
 ${categoryGuide()}
 `;
 
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          data: base64,
-          mimeType,
-        },
-      },
-    ]);
-
-    const text = result.response.text();
+    const text = await generateGeminiText({
+      contents: [{ text: prompt }, { inlineData: { data: base64, mimeType } }],
+      timeoutMs: RECEIPT_TIMEOUT_MS,
+      jsonSchema,
+    });
     const cleaned = text.replace(/```(?:json)?|```/g, "").trim();
 
     return NextResponse.json(normalizedReceipt(JSON.parse(cleaned || "{}")));

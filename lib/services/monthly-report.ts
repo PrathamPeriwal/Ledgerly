@@ -1,12 +1,13 @@
 import { Prisma } from "@prisma/client";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { INSIGHTS_TIMEOUT_MS } from "@/lib/ai/config";
+import { generateGeminiText } from "@/lib/ai/gemini";
 import EmailTemplate from "@/emails/template";
 import { monthBoundsUtc, type MonthBounds } from "@/lib/data/dashboard-calc";
 import { formatCurrency } from "@/lib/format";
 import { db } from "@/lib/prisma";
 import { isDemoEmail, sendEmail } from "@/lib/send-email";
 
-const INSIGHT_TIMEOUT_MS = 20_000;
+const INSIGHT_TIMEOUT_MS = INSIGHTS_TIMEOUT_MS;
 const INSIGHT_ATTEMPTS = 2;
 
 export type MonthStats = {
@@ -84,8 +85,6 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 }
 
 export async function generateFinancialInsights(stats: MonthStats, month: string): Promise<unknown> {
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? "");
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
   const prompt = `
     Analyze this financial data and provide 3 concise, actionable insights.
     Focus on spending patterns and practical advice.
@@ -102,8 +101,8 @@ export async function generateFinancialInsights(stats: MonthStats, month: string
     Format the response as a JSON array of strings, like this:
     ["insight 1", "insight 2", "insight 3"]
   `;
-  const result = await model.generateContent(prompt, { timeout: INSIGHT_TIMEOUT_MS });
-  const cleaned = result.response.text().replace(/```(?:json)?\n?/g, "").trim();
+  const text = await generateGeminiText({ contents: prompt, timeoutMs: INSIGHT_TIMEOUT_MS });
+  const cleaned = text.replace(/```(?:json)?\n?/g, "").trim();
   return JSON.parse(cleaned) as unknown;
 }
 
