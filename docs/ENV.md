@@ -20,6 +20,9 @@ Names only. Put values in `.env` locally and in Vercel. Never commit them.
 | `DEMO_USER_PASSWORD` | Demo seed / Playwright | no | Password for `npm run seed:demo` and one e2e test |
 | `VERCEL_PROJECT_PRODUCTION_URL` | Vercel | no | Host for absolute Open Graph and sitemap URLs. Vercel sets it |
 | `NODE_ENV` | Node | no | Set by Next.js and Vercel |
+| `NEXT_PUBLIC_SITE_URL` | SEO | no | Canonical origin for metadata, robots and sitemap. Falls back to `https://` + `VERCEL_PROJECT_PRODUCTION_URL`, then `http://localhost:3000` |
+| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | SEO | no | Google Search Console verification token (public meta tag) |
+| `NEXT_PUBLIC_BING_SITE_VERIFICATION` | SEO | no | Bing Webmaster verification token (public meta tag) |
 | `ANALYZE` | Bundle analyzer | no | `true` enables the analyzer during build |
 | `BASE_URL` | Playwright | no | Target origin. Defaults to `http://localhost:3000` |
 | `RUN_PERF` | Playwright | no | Set to run `e2e/perf` |

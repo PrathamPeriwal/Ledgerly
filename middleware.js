@@ -151,9 +151,12 @@ export default async function middleware(req, event) {
   return res;
 }
 
+// Public marketing routes ("/", "/privacy", robots, sitemap, manifest, generated images, icons) and
+// static assets never run middleware. ".+" after the first slash also leaves "/" out.
+// Everything else (dashboard, account, transaction, demo, auth, API, dev) stays matched.
 export const config = {
   matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/((?!_next|privacy$|robots\\.txt$|sitemap\\.xml$|manifest\\.webmanifest$|opengraph-image|twitter-image|icon|apple-icon|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).+)",
     "/(api|trpc)(.*)",
     "/sign-in(.*)",
     "/sign-up(.*)",

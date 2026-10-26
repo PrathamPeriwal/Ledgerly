@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GITHUB_REPO_URL } from "@/lib/site";
 
 const linkClass =
   "label block border-b-strong border-border px-4 py-4 transition-colors hover:bg-accent hover:text-accent-foreground last:border-b-0";
@@ -20,17 +21,26 @@ export function SiteFooter() {
             Try the demo
           </Link>
         </div>
-        <div className="flex flex-col border-b-strong border-border md:border-b-0 md:border-r-strong">
-          <a className={linkClass} href="https://github.com/PrathamPeriwal/Ledgerly">
+        <nav
+          aria-label="Footer"
+          className="flex flex-col border-b-strong border-border md:border-b-0 md:border-r-strong"
+        >
+          <Link className={linkClass} href="/#features" prefetch={false}>
+            Features
+          </Link>
+          <Link className={linkClass} href="/#how" prefetch={false}>
+            How it works
+          </Link>
+          <Link className={linkClass} href="/#faq" prefetch={false}>
+            FAQ
+          </Link>
+          <Link className={linkClass} href="/privacy" prefetch={false}>
+            Privacy
+          </Link>
+          <a className={linkClass} href={GITHUB_REPO_URL} rel="noopener noreferrer">
             GitHub
           </a>
-          <a className={linkClass} href="#features">
-            Features
-          </a>
-          <a className={linkClass} href="#how">
-            How it works
-          </a>
-        </div>
+        </nav>
         <div className="flex flex-col text-sm">
           <p className="border-b-strong border-border px-4 py-4">
             Built with Next.js, Prisma, Supabase, Clerk, Inngest, Gemini
