@@ -13,6 +13,7 @@ export function SiteFooter() {
           <p className="display text-4xl md:text-5xl">Scan. Review. Track.</p>
           <Link
             href="/demo"
+            prefetch={false}
             data-cursor="GO"
             className="label inline-flex w-fit border-strong border-border bg-primary px-4 py-3 text-primary-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
           >

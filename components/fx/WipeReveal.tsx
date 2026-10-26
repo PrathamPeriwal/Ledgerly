@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, type ReactNode } from "react";
-import { motion, useInView } from "motion/react";
+import { useInView } from "motion/react";
+import * as m from "motion/react-m";
 import { cn } from "@/lib/utils";
 import "./fx.css";
 import { useReducedMotionSafe } from "./reduced";
@@ -33,7 +34,7 @@ export function WipeReveal({
 
   return (
     <div ref={ref} className={className}>
-    <motion.div
+    <m.div
       className="fx-wipe h-full"
       initial={{ clipPath: hiddenClip[direction] }}
       animate={{ clipPath: show ? "inset(0 0 0 0)" : hiddenClip[direction] }}
@@ -44,7 +45,7 @@ export function WipeReveal({
       }}
     >
       {children}
-    </motion.div>
+    </m.div>
     </div>
   );
 }

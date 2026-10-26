@@ -78,7 +78,7 @@ test("one-click demo signs in as Maya and signs out from the banner", async ({ p
 test("demo entry switches a signed-in Hana session to Maya", async ({ page }) => {
   test.setTimeout(120000);
   const errors = watch(page);
-  await page.goto("/");
+  await page.goto("/sign-in");
   await clerk.signIn({ page, emailAddress: "hana@example.com" });
   await page.goto("/demo", { waitUntil: "domcontentloaded" });
   await page.waitForURL(/\/dashboard\/?$/, { timeout: 45000 });

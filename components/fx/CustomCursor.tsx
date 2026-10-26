@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring } from "motion/react";
+import { useMotionValue, useSpring } from "motion/react";
+import * as m from "motion/react-m";
 import { useReducedMotionSafe } from "./reduced";
 
 export function CustomCursor() {
@@ -58,22 +59,22 @@ export function CustomCursor() {
   const posY = reduced ? y : springY;
 
   return (
-    <motion.div
+    <m.div
       aria-hidden
       className="pointer-events-none fixed left-0 top-0 z-[80]"
       style={{ x: posX, y: posY, opacity: inside ? 1 : 0 }}
     >
       <div className="-translate-x-1/2 -translate-y-1/2">
-        <motion.div
+        <m.div
           className="relative h-3 w-3"
           animate={{ opacity: label ? 0 : 1, scale: label ? 0.4 : 1 }}
           transition={{ duration: reduced ? 0 : 0.2 }}
         >
           <span className="absolute left-1/2 top-0 h-3 w-px -translate-x-1/2 bg-[#1A1B1C]" />
           <span className="absolute left-0 top-1/2 h-px w-3 -translate-y-1/2 bg-[#1A1B1C]" />
-        </motion.div>
+        </m.div>
         <div className="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2">
-          <motion.div
+          <m.div
             className="h-10 w-10 rounded-full border-2 border-[#1A1B1C] bg-transparent"
             animate={{ opacity: label ? 1 : 0, scale: label ? 1 : 0.2 }}
             transition={{ duration: reduced ? 0 : 0.22 }}
@@ -86,6 +87,6 @@ export function CustomCursor() {
           </span>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }

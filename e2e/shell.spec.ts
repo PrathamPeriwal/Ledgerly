@@ -13,7 +13,7 @@ test("signed-out landing renders the nav without uncaught errors", async ({ page
   await expect(page.getByRole("link", { name: "Ledgerly" }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Features" }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "How it works" }).first()).toBeVisible();
-  await expect(page.getByRole("link", { name: "Login" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Login" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Try the demo" }).first()).toBeVisible();
   expect(pageErrors, pageErrors.join("\n")).toEqual([]);
 });
@@ -27,7 +27,7 @@ test("unknown routes show the 404 page", async ({ page }) => {
 test("maya opens the command menu and jumps to the dashboard", async ({ page }) => {
   test.setTimeout(90000);
   const pageErrors = watch(page);
-  await page.goto("/");
+  await page.goto("/sign-in");
   await clerk.signIn({ page, emailAddress: "maya@example.com" });
   await page.goto("/transaction/create", { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.documentElement.dataset.commandMenu === "ready");

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useLayoutEffect } from "react";
-import { motion, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
+import { useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
+import * as m from "motion/react-m";
 import { cn } from "@/lib/utils";
 import "./fx.css";
 import { useReducedMotionSafe } from "./reduced";
@@ -67,7 +68,7 @@ export function GridBackground({
 
   return (
     <div className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)} aria-hidden>
-      <motion.div
+      <m.div
         className={cn(
           "absolute inset-0",
           lines === "paper" ? "bg-grid-paper" : variant === "square" ? "bg-grid-square" : "bg-grid",

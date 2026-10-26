@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useTransform, type MotionValue } from "motion/react";
+import { useTransform, type MotionValue } from "motion/react";
+import * as m from "motion/react-m";
 import { cn } from "@/lib/utils";
 import "./fx.css";
 
@@ -19,7 +20,7 @@ export function DiagonalGrid({
       className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}
       aria-hidden
     >
-      <motion.div className="absolute inset-0 bg-grid-square" style={{ backgroundPosition }} />
+      <m.div className="absolute inset-0 bg-grid-square" style={{ backgroundPosition }} />
     </div>
   );
 }

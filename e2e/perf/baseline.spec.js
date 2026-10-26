@@ -40,7 +40,7 @@ test("production baseline", async ({ page }) => {
 
   for (const user of users) {
     await page.context().clearCookies();
-    await page.goto("/");
+    await page.goto("/sign-in");
     await clerk.signIn({ page, emailAddress: user.email });
     await page.goto("/dashboard");
     await expect(page.getByText(/Checking|Operating|Account/).first()).toBeVisible({
