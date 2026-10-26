@@ -38,7 +38,7 @@ function watch(page) {
 }
 
 async function signIn(page, email) {
-  await page.goto("/");
+  await page.goto("/sign-in");
   await clerk.signIn({ page, emailAddress: email });
 }
 
@@ -146,7 +146,7 @@ test("maya can sign in with the demo password", async ({ page }) => {
   const password = process.env.DEMO_USER_PASSWORD;
   expect(password, "DEMO_USER_PASSWORD is missing").toBeTruthy();
 
-  await page.goto("/");
+  await page.goto("/sign-in");
   try {
     await clerk.signIn({
       page,

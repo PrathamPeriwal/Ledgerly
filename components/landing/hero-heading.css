@@ -1,0 +1,19 @@
+
+/* Hero heading bar: starts immediately, no JS. Same sweep as RevealHeading (0.45s in, 0.45s out). */
+@keyframes hero-bar-sweep {
+  0% { transform: scaleX(0); transform-origin: left; animation-timing-function: ease-in-out; }
+  50% { transform: scaleX(1); transform-origin: left; }
+  50.01% { transform: scaleX(1); transform-origin: right; animation-timing-function: ease-in-out; }
+  100% { transform: scaleX(0); transform-origin: right; }
+}
+
+.hero-bar {
+  transform: scaleX(0);
+  animation: hero-bar-sweep 0.9s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-bar {
+    animation: none;
+  }
+}

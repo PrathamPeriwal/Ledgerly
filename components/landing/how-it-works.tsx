@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { motion, useTransform, type MotionValue } from "motion/react";
+import { useTransform, type MotionValue } from "motion/react";
+import * as m from "motion/react-m";
 import { formatCurrency } from "@/lib/format";
 import { RevealHeading } from "@/components/fx/RevealHeading";
 import { StickyCardStack, useStackLocal, type StickyCard } from "@/components/fx/StickyCardStack";
@@ -16,12 +17,12 @@ function useStep(local: MotionValue<number>, from: number, to: number) {
 
 function Tag({ opacity }: { opacity: MotionValue<number> }) {
   return (
-    <motion.span
+    <m.span
       style={{ opacity }}
       className="inline-block -rotate-[4deg] border-2 border-[#1A1B1C] bg-white px-2 py-0.5 text-xs font-semibold uppercase tracking-[0.06em] text-[#1A1B1C]"
     >
       AI FILLED
-    </motion.span>
+    </m.span>
   );
 }
 
@@ -51,9 +52,9 @@ function FilledRow({
     <div className="flex items-center justify-between gap-2 border-2 border-[#1A1B1C] px-3 py-2">
       <span className={label}>{name}</span>
       <span className="flex items-center gap-2">
-        <motion.span style={{ opacity: step }} className="text-sm font-bold">
+        <m.span style={{ opacity: step }} className="text-sm font-bold">
           {children}
-        </motion.span>
+        </m.span>
         <Tag opacity={step} />
       </span>
     </div>
@@ -82,7 +83,7 @@ function AddCard() {
             ))}
           </div>
           <p className="font-num mt-3 text-sm font-bold">TOTAL {amount}</p>
-          <motion.div className="absolute left-0 right-0 h-1 bg-[#FF5F14]" style={{ top: scanTop }} />
+          <m.div className="absolute left-0 right-0 h-1 bg-[#FF5F14]" style={{ top: scanTop }} />
         </div>
         <div className="space-y-2 border-[3px] border-[#1A1B1C] bg-white p-3 text-[#1A1B1C]">
           <FilledRow name="AMOUNT" step={s1}>
@@ -123,14 +124,14 @@ function LedgerRow({
   const height = useTransform(k, [0, 1], [36, 0]);
   const opacity = useTransform(k, [0, 1], [1, 0]);
   return (
-    <motion.div style={{ height, opacity }} className="overflow-hidden">
+    <m.div style={{ height, opacity }} className="overflow-hidden">
       <div className="flex h-9 items-center gap-2 border-b-2 border-[#1A1B1C] text-sm">
         <span className="font-num w-14 shrink-0 text-xs font-semibold">{date}</span>
         <span className="min-w-0 flex-1 truncate">{name}</span>
         <span className="font-num font-bold">{value}</span>
         <span className={`h-3 w-3 shrink-0 border-2 border-[#1A1B1C] ${expense ? "bg-[#FF5F14]" : "bg-[#1A1B1C]"}`} />
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -163,12 +164,12 @@ function ReviewCard() {
               </span>
             </div>
           ))}
-          <motion.div
+          <m.div
             style={{ scale: press }}
             className={`${label} inline-block origin-left border-[3px] border-white bg-[#FF5F14] px-5 py-2.5 text-[#1A1B1C]`}
           >
             CONFIRM
-          </motion.div>
+          </m.div>
         </div>
         <div className="border-[3px] border-white bg-white p-3 text-[#1A1B1C]">
           <p className={label}>FIND IT LATER</p>
@@ -195,7 +196,7 @@ function ReviewCard() {
 
 function Bar({ local, index, value }: { local: MotionValue<number>; index: number; value: number }) {
   const height = useTransform(local, [index * 0.07, 0.5 + index * 0.07], ["0%", `${value}%`], { clamp: true });
-  return <motion.div className={`flex-1 ${index % 3 === 2 ? "bg-[#FF5F14]" : "bg-[#1A1B1C]"}`} style={{ height }} />;
+  return <m.div className={`flex-1 ${index % 3 === 2 ? "bg-[#FF5F14]" : "bg-[#1A1B1C]"}`} style={{ height }} />;
 }
 
 function TrackCard() {
@@ -217,10 +218,10 @@ function TrackCard() {
         <div className="self-center">
           <p className={`${label} mb-2 flex justify-between`}>
             <span>BUDGET USED</span>
-            <motion.span className="font-num">{text}</motion.span>
+            <m.span className="font-num">{text}</m.span>
           </p>
           <div className="relative h-5 bg-[#1A1B1C]">
-            <motion.div className="h-full bg-[#FF5F14]" style={{ width }} />
+            <m.div className="h-full bg-[#FF5F14]" style={{ width }} />
             <div className="absolute -bottom-1 -top-1 left-[64%] w-[3px] bg-white outline outline-1 outline-[#1A1B1C]" />
           </div>
           <p className="mt-1 text-xs font-semibold uppercase tracking-[0.06em]" style={{ marginLeft: "64%" }}>PACE</p>

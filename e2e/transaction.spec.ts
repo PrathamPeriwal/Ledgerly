@@ -26,7 +26,7 @@ function assertClean(errors: { pageErrors: string[]; httpErrors: string[] }) {
 }
 
 async function signIn(page: Page) {
-  await page.goto("/");
+  await page.goto("/sign-in");
   await clerk.signIn({ page, emailAddress: "hana@example.com" });
 }
 

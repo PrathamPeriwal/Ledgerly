@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
-import { motion, useAnimation, useInView } from "motion/react";
+import { useAnimation, useInView } from "motion/react";
+import * as m from "motion/react-m";
 import { cn } from "@/lib/utils";
 import "./fx.css";
 import { useReducedMotionSafe } from "./reduced";
@@ -57,7 +58,7 @@ export function RevealHeading({
   return (
     <div ref={rootRef} className="relative block w-full">
       <Tag className={cn("relative z-0 select-text", className)}>{children}</Tag>
-      <motion.span
+      <m.span
         aria-hidden
         initial={{ scaleX: 0, originX: 0 }}
         animate={controls}

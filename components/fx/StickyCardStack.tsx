@@ -9,7 +9,6 @@ import {
   type ReactNode,
 } from "react";
 import {
-  motion,
   useMotionValue,
   useMotionValueEvent,
   useScroll,
@@ -17,6 +16,7 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
+import * as m from "motion/react-m";
 import { cn } from "@/lib/utils";
 import { DiagonalGrid } from "./DiagonalGrid";
 import { RevealGroup } from "./Reveal";
@@ -79,7 +79,7 @@ function StackCard({
   const scale = useTransform(dim, (d) => 1 - d * 0.03);
   const overlay = useTransform(dim, (d) => d * 0.35);
   return (
-    <motion.article
+    <m.article
       data-sticky-card="true"
       className={cn("absolute overflow-hidden border-[3px] border-[#1A1B1C] p-5 xl:p-6", card.className)}
       style={{
@@ -96,12 +96,12 @@ function StackCard({
       }}
     >
       <LocalContext.Provider value={local}>{card.content}</LocalContext.Provider>
-      <motion.div
+      <m.div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-[#1A1B1C]"
         style={{ opacity: overlay }}
       />
-    </motion.article>
+    </m.article>
   );
 }
 

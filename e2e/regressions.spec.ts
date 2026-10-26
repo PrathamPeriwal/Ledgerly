@@ -37,7 +37,7 @@ test("sign out then back stays off the authenticated app", async ({ page }) => {
   page.on("response", (response) => {
     if (response.status() >= 400) chain.push(`${response.status()} ${response.url()}`);
   });
-  await page.goto("/");
+  await page.goto("/sign-in");
   await clerk.signIn({ page, emailAddress: "maya@example.com" });
   await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "Account menu" }).click();
@@ -71,7 +71,7 @@ test("sign out then back stays off the authenticated app", async ({ page }) => {
 
 test("nav and pagination show the progress bar", async ({ page }) => {
   test.setTimeout(90000);
-  await page.goto("/");
+  await page.goto("/sign-in");
   await clerk.signIn({ page, emailAddress: "maya@example.com" });
   await page.goto("/transaction/create", { waitUntil: "domcontentloaded" });
   await armProgress(page);

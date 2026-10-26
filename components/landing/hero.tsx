@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { GridBackground } from "@/components/fx/GridBackground";
-import { RevealHeading } from "@/components/fx/RevealHeading";
+import { HeroHeading } from "./hero-heading";
 import { Marquee } from "@/components/fx/Marquee";
 import { BalanceBadge } from "./balance-badge";
 import { ScanDemo } from "./scan-demo";
@@ -35,12 +35,9 @@ export function Hero() {
 
           <div className="px-4 pb-10 pt-10 md:px-8 md:pt-16">
             <div className="relative">
-              <RevealHeading
-                as="h1"
-                className="display text-[12.5vw] md:text-[14vw]"
-              >
+              <HeroHeading className="display text-[12.5vw] md:text-[14vw]">
                 KNOW WHERE IT WENT.
-              </RevealHeading>
+              </HeroHeading>
               <div className="mt-6 md:absolute md:bottom-0 md:right-[3%] md:mt-0">
                 <BalanceBadge />
               </div>
@@ -50,7 +47,7 @@ export function Hero() {
               left in your budget. You review everything before it is saved.
             </p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-              <Link href="/demo" data-cursor="GO" className={btnOrange}>
+              <Link href="/demo" prefetch={false} data-cursor="GO" className={btnOrange}>
                 TRY THE DEMO
               </Link>
               <a href="#how" className={btnWhite}>

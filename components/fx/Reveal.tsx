@@ -1,7 +1,8 @@
 "use client";
 
 import { Children, useRef, type ReactNode } from "react";
-import { motion, useInView } from "motion/react";
+import { useInView } from "motion/react";
+import * as m from "motion/react-m";
 import { cn } from "@/lib/utils";
 import "./fx.css";
 import { useReducedMotionSafe } from "./reduced";
@@ -21,7 +22,7 @@ export function Reveal({
   const show = reduced || inView;
 
   return (
-    <motion.div
+    <m.div
       ref={ref}
       className={cn("fx-reveal", className)}
       initial={{ opacity: 0, y: 16 }}
@@ -33,7 +34,7 @@ export function Reveal({
       }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }
 

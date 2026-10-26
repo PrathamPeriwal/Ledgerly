@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion } from "motion/react";
+import * as m from "motion/react-m";
 import { Amount } from "@/components/fx/Privacy";
 import { TiltedTag } from "@/components/fx/TiltedTag";
 import { formatCurrency } from "@/lib/format";
@@ -130,7 +130,7 @@ export function ScanDemo() {
             <span className="font-num text-xl font-bold">{formatCurrency(sample.amount)}</span>
           </div>
           {phase === "scanning" && !reduced ? (
-            <motion.div
+            <m.div
               aria-hidden
               className="absolute left-0 right-0 h-1 bg-[#FF5F14]"
               initial={{ top: 0 }}
@@ -182,7 +182,7 @@ export function ScanDemo() {
           <p className="label mb-2">LEDGER</p>
           <ul className="border-[3px] border-[#1A1B1C]">
             {rows.map((r) => (
-              <motion.li
+              <m.li
                 key={r.id}
                 data-testid="ledger-row"
                 initial={r.fresh && !reduced ? { height: 0, opacity: 0 } : false}
@@ -198,7 +198,7 @@ export function ScanDemo() {
                   </span>
                   <Amount value={r.amount} />
                 </div>
-              </motion.li>
+              </m.li>
             ))}
           </ul>
           <div className="mt-4">

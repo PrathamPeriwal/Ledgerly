@@ -2,10 +2,13 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { GridBackground } from "@/components/fx/GridBackground";
 import { RadialHatch } from "@/components/fx/LineArt";
+import { AppClerkProvider } from "@/components/app-clerk-provider";
 import { DemoCell } from "./demo-cell";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
+    <AppClerkProvider>
+    <main id="content" className="min-h-screen">
     <div className="grid min-h-screen bg-[#E3E7EB] md:grid-cols-2">
       <aside className="relative hidden min-h-screen flex-col justify-between overflow-hidden bg-[#1A1B1C] p-8 text-white md:flex">
         <GridBackground lines="paper" />
@@ -32,5 +35,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         </div>
       </div>
     </div>
+    </main>
+    </AppClerkProvider>
   );
 }
