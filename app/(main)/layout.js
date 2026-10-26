@@ -7,6 +7,8 @@ import { ReloadOnRestore } from "@/components/reload-on-restore";
 import { Toaster } from "@/components/ui/sonner";
 import { isDemoEmail } from "@/lib/send-email";
 
+export const metadata = { robots: { index: false, follow: false } };
+
 const MainLayout = async ({ children }) => {
   const user = await ensureUser();
 

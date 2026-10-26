@@ -6,6 +6,7 @@ import { RouteProgress } from "@/components/route-progress";
 import { DeferredFx } from "@/components/fx/DeferredFx";
 import { MotionProvider } from "@/components/fx/MotionProvider";
 import { PrivacyProvider } from "@/components/fx/Privacy";
+import { AUTHOR_NAME, GITHUB_PROFILE_URL, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site";
 
 const hanken = Hanken_Grotesk({
   subsets: ["latin"],
@@ -34,22 +35,44 @@ const rupee = localFont({
   declarations: [{ prop: "unicode-range", value: "U+20B9" }],
 });
 
-const productionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
-const metadataBase = new URL(
-  productionHost
-    ? `https://${String(productionHost).replace(/^https?:\/\//, "").replace(/\/$/, "")}`
-    : "http://localhost:3000",
-);
+const google = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
+const bing = process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION;
 
 export const metadata = {
-  metadataBase,
-  title: {
-    default: "Ledgerly",
-    template: "%s | Ledgerly",
+  metadataBase: new URL(SITE_URL),
+  title: { default: SITE_TITLE, template: `%s | ${SITE_NAME}` },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  authors: [{ name: AUTHOR_NAME, url: GITHUB_PROFILE_URL }],
+  creator: AUTHOR_NAME,
+  category: "finance",
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "en_IN",
+    url: SITE_URL,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    // The image comes from app/opengraph-image.tsx (size, type and alt are exported there).
   },
-  description: "Scan receipts, review them, and see what is left in your budget.",
+  twitter: { card: "summary_large_image", title: SITE_TITLE, description: SITE_DESCRIPTION },
+  ...(google || bing
+    ? {
+        verification: {
+          ...(google ? { google } : {}),
+          ...(bing ? { other: { "msvalidate.01": bing } } : {}),
+        },
+      }
+    : {}),
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#E3E7EB",
+};
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${hanken.variable} ${geistMono.variable} ${rupee.variable}`}>

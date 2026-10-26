@@ -1,4 +1,4 @@
-﻿# Landing page performance (signed-out "/")
+# Landing page performance (signed-out "/")
 
 All numbers are **local lab numbers** (Lighthouse mobile defaults, throttled, local production build on :3200, median of 3, dev Clerk instance). They are not production measurements. Reproduce with `node scripts/perf-landing.mjs`.
 
@@ -100,3 +100,62 @@ Unused JS (median run, KB total / wasted):
 | Clerk requests | 10 | 2 (dev-only `/v1/client/handshake` redirect from unchanged middleware) | -80% |
 
 FCP/LCP stay high in the lab because Lighthouse's mobile throttling plus the dev-instance handshake dominate; they were not tuned further (one pass only).
+
+## Before B7
+Local production build on :3200 (`ARCJET_ENV=development`), Lighthouse mobile defaults, median of 3, dev Clerk instance.
+
+| Metric | Before B7 |
+| --- | --- |
+| Performance / SEO / Accessibility / Best practices | 72 / 100 / 100 / 100 |
+| FCP / LCP / TBT | 3208 ms / 5038 ms / 191 ms |
+| JS transfer / requests | 190 KB / 34 |
+| Failing SEO and accessibility audits | none |
+| "/" HTML | 139.8 KB |
+
+- **Cookieless Googlebot fetch of "/" (redirect manual):** status 200, no Location, chunked body, `Cache-Control: s-maxage=31536000`. Clerk skips the handshake for bots, so the bot was fine. A cookieless Chrome (Lighthouse) was not: it was sent to `/v1/client/handshake` on the Clerk host (2 Clerk requests, about 900 ms TTFB).
+- **Scroll jank** (`node scripts/scroll-jank.mjs`, 6 s scripted scroll, CPU 4x, median of 3):
+
+| Viewport | Median frame | Frames over 16.7 ms | Frames over 50 ms | Long tasks | Clusters (scroll %) |
+| --- | --- | --- | --- | --- | --- |
+| Desktop 1440x900 | 16.7 ms | 14.7% | 0.0% | 4, 239 ms | 0-10%, 30-40%, 10-20% |
+| Mobile 390x844 | 16.7 ms | 0.0% | 0.0% | 0, 0 ms | none |
+
+"Over 16.7 ms" uses a 0.5 ms timer tolerance (rAF at 60 Hz jitters around 16.7).
+
+## After B7
+Same setup.
+
+| Metric | After B7 |
+| --- | --- |
+| Performance / SEO / Accessibility / Best practices | 86 / 100 / 100 / 100 |
+| FCP / LCP / TBT | 1526 ms / 3564 ms / 217 ms |
+| JS transfer / requests | 229 KB / 35 |
+| Clerk requests on "/" | 0 |
+| "/" HTML | 158.1 KB (FAQ, JSON-LD and the second nav are new text) |
+
+- **Middleware** no longer runs on "/", "/privacy", robots, sitemap, manifest, generated images, icons and static files. The cookieless Googlebot fetch still returns 200 with no Location. A cookieless browser no longer gets a handshake redirect.
+- **JS transfer** is higher than before (190 to 229 KB) because the Clerk handshake no longer interrupts the load, so more chunks finish inside the measured window. The route's First Load JS is unchanged (166 KB).
+- **`experimental.inlineCss: true`** was tried and reverted: FCP 1217 ms and performance 86, but "/" HTML grew to 293.8 KB (limit 150 KB), and LCP did not improve (3590 ms).
+- **Hydration check:** nothing on the landing page that carries text uses `ssr: false`. The only `ssr: false` is the mobile menu, which mounts after a click. The raw HTML contains "Scan a receipt or type it in", "Nothing is saved until you confirm", UNDER THE HOOD and the FAQ (checked by `npm run check:seo`).
+- **Scroll jank:**
+
+| Viewport | Median frame | Frames over 16.7 ms | Frames over 50 ms | Long tasks | Clusters (scroll %) |
+| --- | --- | --- | --- | --- | --- |
+| Desktop 1440x900 | 16.7 ms | 19.1% | 1.7% | 7, 541 ms | 0-10%, 30-40%, 10-20% |
+| Mobile 390x844 | 16.7 ms | 0.0% | 0.0% | 0, 0 ms | none |
+
+The desktop figures vary a lot between runs at 4x CPU throttling (long tasks 4 to 7). Most of the long-task time sits in the first 10% of the scroll, which is when hydration and the deferred effects finish.
+
+## COST OF EFFECTS
+Report only. No effect was removed or simplified in B7.
+
+| Effect | Evidence | Recommendation |
+| --- | --- | --- |
+| Grid drift (`BgGridDrift`) | Loaded after idle (`DeferredFx`), so it adds no first-load JS. Part of the long tasks in the first 10% of the scroll. | Keep. |
+| Diagonal grid and sticky stack (`StickyCardStack`) | 30-40% of the scroll (the how-it-works section) has the second cluster: 255 to 441 ms of long tasks, no frame over 50 ms. The stack is the largest part of the landing route chunk (4.95 kB route, 166 kB First Load JS shared with the whole site). | Keep. Watch it if cards are added. |
+| Custom cursor | Deferred chunk. Mobile has no cursor and no long tasks. Desktop only. | Keep. |
+| Hero scan demo | Hydrates in the first 10% of the scroll, where the largest long-task total sits (388 to 1016 ms across runs). | Keep. If jank matters, mount it on view. |
+| Marquee | No cluster at its scroll position. CSS driven. | Keep. |
+| Reveal animations (`RevealHeading`, `WipeReveal`) | No cluster at section headings. They use `useInView` and transform only. | Keep. |
+
+Mobile at 4x CPU shows no frame over 50 ms and no long task, so no effect needs to be simplified on this data.

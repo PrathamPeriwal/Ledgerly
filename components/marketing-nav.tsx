@@ -13,10 +13,10 @@ export function MarketingLinks({ stacked, onNavigate }: { stacked?: boolean; onN
   const signedIn = useSessionHint();
   return (
     <>
-      <NavItem href="#features" stacked={stacked} onClick={onNavigate}>
+      <NavItem href="/#features" stacked={stacked} onClick={onNavigate}>
         Features
       </NavItem>
-      <NavItem href="#how" stacked={stacked} onClick={onNavigate}>
+      <NavItem href="/#how" stacked={stacked} onClick={onNavigate}>
         How it works
       </NavItem>
       {signedIn ? (

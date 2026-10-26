@@ -25,6 +25,7 @@ export function UnderTheHood() {
           <p className="display text-3xl md:text-5xl">READ THE CODE</p>
           <a
             href="https://github.com/PrathamPeriwal/Ledgerly"
+            rel="noopener noreferrer"
             data-cursor="OPEN"
             className={btnOrange}
           >

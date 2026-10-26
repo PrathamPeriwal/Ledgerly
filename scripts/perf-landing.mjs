@@ -1,4 +1,5 @@
-// Lab perf for signed-out "/": 3 Lighthouse runs (performance only, mobile defaults), medians.
+// Lab perf for signed-out "/": 3 Lighthouse runs (performance, seo, accessibility, best-practices; mobile defaults), medians.
+// Also prints a cookieless Googlebot fetch of "/" (redirect manual).
 // Usage: node scripts/perf-landing.mjs [baseUrl]   (default http://localhost:3200)
 import { execSync } from "node:child_process";
 import { mkdtempSync, readFileSync } from "node:fs";
@@ -13,11 +14,20 @@ const median = (a) => {
   return s.length ? s[Math.floor(s.length / 2)] : 0;
 };
 const rows = [];
+const failing = new Map();
+
+const bot = await fetch(`${base}/`, {
+  redirect: "manual",
+  headers: { "user-agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" },
+});
+const html = await bot.text();
+console.log(`Googlebot (no cookies, redirect manual): status ${bot.status}, Location ${bot.headers.get("location") ?? "(none)"}, content-length ${bot.headers.get("content-length") ?? `(chunked, body ${html.length} B)`}, cache-control ${bot.headers.get("cache-control") ?? "(none)"}, x-vercel-cache ${bot.headers.get("x-vercel-cache") ?? "(none)"}`);
+console.log(`HTML size: ${(Buffer.byteLength(html) / 1024).toFixed(1)} KB`);
 
 for (let i = 0; i < RUNS; i += 1) {
   const out = join(dir, `r${i}.json`);
   execSync(
-    `npx --yes lighthouse "${base}/" --only-categories=performance --output=json --output-path="${out}" --chrome-flags="--headless=new --no-sandbox" --quiet`,
+    `npx --yes lighthouse "${base}/" --only-categories=performance,seo,accessibility,best-practices --output=json --output-path="${out}" --chrome-flags="--headless=new --no-sandbox" --quiet`,
     { stdio: "ignore", shell: true },
   );
   const lh = JSON.parse(readFileSync(out, "utf8"));
@@ -50,6 +60,9 @@ for (let i = 0; i < RUNS; i += 1) {
   }));
   rows.push({
     score: Math.round((lh.categories.performance.score ?? 0) * 100),
+    seo: Math.round(lh.categories.seo.score * 100),
+    a11y: Math.round(lh.categories.accessibility.score * 100),
+    bp: Math.round(lh.categories["best-practices"].score * 100),
     fcp: a["first-contentful-paint"].numericValue,
     lcp: a["largest-contentful-paint"].numericValue,
     tbt: a["total-blocking-time"].numericValue,
@@ -72,7 +85,9 @@ const m = (k) => median(rows.map((r) => r[k]));
 const mid = rows.slice().sort((x, y) => x.lcp - y.lcp)[Math.floor(RUNS / 2)];
 const phaseKeys = [...new Set(rows.flatMap((r) => Object.keys(r.phases)))];
 console.log(`Lab run (local, mobile defaults), base ${base}, median of ${RUNS}`);
-console.log(`performance score: ${m("score")}`);
+console.log(`scores: performance ${m("score")}, seo ${m("seo")}, accessibility ${m("a11y")}, best-practices ${m("bp")}`);
+console.log("Failing SEO / accessibility / best-practices audits (any run):");
+for (const [k, v] of failing) console.log(`  ${k} - ${v}`);
 console.log(`FCP: ${Math.round(m("fcp"))} ms`);
 console.log(`LCP: ${Math.round(m("lcp"))} ms`);
 console.log(`TBT: ${Math.round(m("tbt"))} ms`);

@@ -35,9 +35,9 @@ function NavLinks({ stacked, onNavigate }: { stacked?: boolean; onNavigate?: () 
         />
       </div>
       <NavItem stacked={stacked} onClick={command}>
-        ⌘K
+        ?K
       </NavItem>
-      <NavItem href="/transaction/create" tone="orange" stacked={stacked} onClick={onNavigate}>
+      <NavItem href="/transaction/create" prefetch={false} tone="orange" stacked={stacked} onClick={onNavigate}>
         Add transaction
       </NavItem>
       <div

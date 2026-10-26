@@ -20,6 +20,7 @@ const nextConfig = {
   
   // Headers for performance
   async headers() {
+    const noindex = { key: "X-Robots-Tag", value: "noindex, nofollow" };
     return [
       {
         source: '/(.*)',
@@ -39,20 +40,22 @@ const nextConfig = {
       },
       {
         source: "/dashboard",
-        headers: [{ key: "Cache-Control", value: "no-store" }],
+        headers: [{ key: "Cache-Control", value: "no-store" }, noindex],
       },
       {
         source: "/dashboard/:path*",
-        headers: [{ key: "Cache-Control", value: "no-store" }],
+        headers: [{ key: "Cache-Control", value: "no-store" }, noindex],
       },
       {
         source: "/account/:path*",
-        headers: [{ key: "Cache-Control", value: "no-store" }],
+        headers: [{ key: "Cache-Control", value: "no-store" }, noindex],
       },
       {
         source: "/transaction/:path*",
-        headers: [{ key: "Cache-Control", value: "no-store" }],
+        headers: [{ key: "Cache-Control", value: "no-store" }, noindex],
       },
+      { source: "/api/:path*", headers: [noindex] },
+      { source: "/demo", headers: [noindex] },
       {
         source: '/fonts/(.*)',
         headers: [

@@ -1,11 +1,10 @@
 import type { MetadataRoute } from "next";
-
-function siteUrl() {
-  const host = process.env.VERCEL_PROJECT_PRODUCTION_URL;
-  if (!host) return "http://localhost:3000";
-  return `https://${host.replace(/^https?:\/\//, "").replace(/\/$/, "")}`;
-}
+import { LAST_UPDATED, SITE_URL } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [{ url: `${siteUrl()}/` }];
+  const lastModified = new Date(LAST_UPDATED);
+  return [
+    { url: `${SITE_URL}/`, lastModified, changeFrequency: "weekly", priority: 1 },
+    { url: `${SITE_URL}/privacy`, lastModified, changeFrequency: "monthly", priority: 0.3 },
+  ];
 }
