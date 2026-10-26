@@ -14,7 +14,7 @@ const aj = arcjet({
     shield({ mode: arcjetMode }),
     detectBot({
       mode: arcjetMode,
-      allow: ["CATEGORY:SEARCH_ENGINE", "GO_HTTP"],
+      allow: ["CATEGORY:SEARCH_ENGINE", "GO_HTTP", "CURL"],
     }),
   ],
 });

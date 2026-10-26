@@ -1,12 +1,8 @@
 // Technical SEO check against raw HTML (no JS, no cookies, redirects manual).
 // Usage: BASE_URL=http://localhost:3000 node scripts/seo-check.mjs
-// SITE_URL (expected canonical origin) defaults to NEXT_PUBLIC_SITE_URL, then https://VERCEL_PROJECT_PRODUCTION_URL, then http://localhost:3000.
+// Expected canonical origin: NEXT_PUBLIC_SITE_URL, otherwise BASE_URL (same host the check fetches).
 const BASE = (process.env.BASE_URL || "http://localhost:3000").replace(/\/+$/, "");
-const SITE = (
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.replace(/^https?:\/\//, "")}` : "") ||
-  "http://localhost:3000"
-).replace(/\/+$/, "");
+const SITE = (process.env.NEXT_PUBLIC_SITE_URL || BASE).replace(/\/+$/, "");
 const UA = { "user-agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)" };
 
 let failed = 0;

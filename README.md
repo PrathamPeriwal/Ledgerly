@@ -2,10 +2,25 @@
 
 # Ledgerly
 
+**Live demo:** https://ledgerly-finance-one.vercel.app
+
+Click TRY THE DEMO; no sign-up needed.
+
 Ledgerly is a personal finance app that turns receipts into reviewed transactions and shows how much of your monthly budget is left.
 
-**Live demo:** https://ledgerly-finance-one.vercel.app
-Choose **Try the demo** to explore a pre-filled ledger. No sign-up needed.
+## Screenshots
+
+![Landing page: Know where it went](docs/screenshots/landing-hero.webp)
+
+![How it works, halfway through the scroll](docs/screenshots/how-it-works.webp)
+
+![Dashboard with the demo ledger](docs/screenshots/dashboard.webp)
+
+![Account page with transactions](docs/screenshots/account.webp)
+
+![Transaction form after a receipt scan, with AI filled tags](docs/screenshots/transaction-scan.webp)
+
+![Dashboard on a phone](docs/screenshots/dashboard-mobile.webp)
 
 ## Highlights
 
@@ -16,6 +31,16 @@ Choose **Try the demo** to explore a pre-filled ledger. No sign-up needed.
 - **Monthly email reports** delivered through Resend.
 - **Fast server-side search, filters, and pagination** (15 per page, executed in the database query).
 - **Privacy mode** to mask balances, and a **command menu** for keyboard navigation.
+
+## Performance
+
+| | Before | After |
+| --- | ---: | ---: |
+| Dashboard load | 6.9s | 0.7s |
+| DB queries per dashboard | 13 | 6 |
+| Account page queries | 9 | 6 |
+
+Production, demo account, median of 3 runs from one location. Full table: [docs/PERF-BASELINE.md](docs/PERF-BASELINE.md).
 
 ## Architecture
 

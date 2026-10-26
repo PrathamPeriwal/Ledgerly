@@ -25,6 +25,12 @@ Inngest functions live in `lib/inngest/functions.ts` and are served at `/api/inn
 
 The per-item functions (`process-*`) are event-driven, retried, and do the real work, so one failing user never blocks the rest.
 
+## Keeping the free database awake
+
+The free database pauses when nothing talks to it. Three things keep it awake: the nightly demo reset (Inngest `demo-reset`), a health ping every 3 days, and ordinary use of the app.
+
+`GET /api/health` counts the budget table and returns `{ ok: true }` with no rows. GitHub Actions calls it on `17 3 */3 * *` (and on demand) via `.github/workflows/keepalive.yml`. The URL is the `SITE_URL` repository variable, or the production site when that variable is empty. Middleware and robots treat `/api/health` like the other `/api` routes (not indexed; `CURL` is allowed so this ping is not stopped as a bot). The route also rate-limits each IP to 30 requests a minute.
+
 ## AI
 
 All Gemini calls go through `lib/ai/gemini.ts` (one client factory built on `@google/genai`). `generateWithFallback` tries the chain from `lib/ai/config.ts` (`GEMINI_MODEL`, `GEMINI_FALLBACK_MODELS`; defaults `gemini-3.5-flash-lite`, then `gemini-3.6-flash`) with a real AbortSignal per attempt (12 s) and a 24 s total budget for receipts. Receipt calls use minimal thinking. `npm run check:gemini` probes each model once.
