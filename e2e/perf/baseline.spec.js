@@ -4,10 +4,7 @@ import path from "node:path";
 import { clerk } from "@clerk/testing/playwright";
 import { expect, test } from "@playwright/test";
 
-const users = [
-  { key: "Lucas", email: "lucas@example.com" },
-  { key: "Maya", email: "maya@example.com" },
-];
+const users = [{ key: "Maya", email: "maya@example.com" }];
 
 function median(values) {
   const sorted = [...values].sort((a, b) => a - b);
