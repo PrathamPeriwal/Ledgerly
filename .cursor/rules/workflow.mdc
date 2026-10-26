@@ -18,3 +18,4 @@ alwaysApply: true
 - Run "npm run test:e2e:quick" (Maya only: dashboard and her default account page, fail on page errors or 5xx) only when a phase changes data fetching, auth or routing. Never run the full five-user suite or the perf baseline unless I ask.
 - Tests may write to the database only for demo users and must restore what they change. Never delete or skip a test to get green.
 - Put something under NEEDS HUMAN only if it truly cannot be automated.
+- Never move, delete or force-push a tag. If a tag points to the wrong commit, create a new tag name instead.
