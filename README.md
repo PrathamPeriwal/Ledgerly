@@ -1,136 +1,153 @@
 [![CI](https://github.com/PrathamPeriwal/Ledgerly/actions/workflows/ci.yml/badge.svg)](https://github.com/PrathamPeriwal/Ledgerly/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
 
 # Ledgerly
 
-**Live demo:** https://ledgerly-finance-one.vercel.app
+**Scan a receipt, review the draft, and see whether the month is still on pace.**
 
-Click TRY THE DEMO; no sign-up needed.
+Ledgerly is a personal finance app: accounts, a monthly budget, and transactions you can type or scan. It is a portfolio project with a public demo ledger.
 
-Ledgerly is a personal finance app that turns receipts into reviewed transactions and shows how much of your monthly budget is left.
+Live demo: https://ledgerly-finance-one.vercel.app (click TRY THE DEMO; sample data, no sign-up).
 
-## Screenshots
+**Signature ideas.** Nothing from a scan is saved until you review it. One monthly budget covers every account, with a pace marker for the days left in the month.
 
-![Landing page: Know where it went](docs/screenshots/landing-hero.webp)
+Contents: [Features](#features) · [Architecture](#architecture) · [Background jobs](#background-jobs) · [Performance](#performance) · [Getting started](#getting-started) · [Scripts](#scripts) · [Testing](#testing) · [Security](#security) · [Deployment](#deployment) · [Roadmap](#roadmap) · [Notes](#notes)
 
-![How it works, halfway through the scroll](docs/screenshots/how-it-works.webp)
+## Features
 
-![Dashboard with the demo ledger](docs/screenshots/dashboard.webp)
-
-![Account page with transactions](docs/screenshots/account.webp)
-
-![Transaction form after a receipt scan, with AI filled tags](docs/screenshots/transaction-scan.webp)
-
-![Dashboard on a phone](docs/screenshots/dashboard-mobile.webp)
-
-## Highlights
-
-- **Receipt scanning with review.** Upload a receipt, Gemini extracts the fields, and you confirm or edit them before anything is saved.
-- **Budget pace.** One monthly budget per account, with a clear view of spend against the days remaining.
-- **Multiple accounts** and manual entry for cash or anything a receipt can't cover.
-- **Recurring transactions** created automatically by background jobs.
-- **Monthly email reports** delivered through Resend.
-- **Fast server-side search, filters, and pagination** (15 per page, executed in the database query).
-- **Privacy mode** to mask balances, and a **command menu** for keyboard navigation.
-
-## Performance
-
-| | Before | After |
-| --- | ---: | ---: |
-| Dashboard load | 6.9s | 0.7s |
-| DB queries per dashboard | 13 | 6 |
-| Account page queries | 9 | 6 |
-
-Production, demo account, median of 3 runs from one location. Full table: [docs/PERF-BASELINE.md](docs/PERF-BASELINE.md).
+- Receipt scanning with review: Gemini reads the image, and the form saves only after you confirm.
+- Manual entry for anything a receipt does not cover.
+- Multiple accounts, with one marked as the default.
+- One monthly budget and a pace marker against the days left.
+- Recurring transactions, posted by a daily job.
+- A monthly email report.
+- Privacy mode, which hides amounts in the browser.
+- A command menu (Ctrl or Cmd+K) and a shortcut to add a transaction (N).
+- Server-side search, filters, and pagination (15 rows per page).
 
 ## Architecture
 
-| Concern | Choice |
+```mermaid
+flowchart LR
+  browser[Browser] --> app[Next.js App Router]
+  app --> edge[Server actions and route handlers]
+  edge --> services[Services]
+  services --> prisma[Prisma]
+  prisma --> db[(Postgres on Supabase)]
+  app --> jobs[Inngest jobs]
+  app --> gemini[Gemini]
+  app --> clerk[Clerk]
+  app --> resend[Resend]
+  app --> arcjet[Arcjet]
+```
+
+### Key modules
+
+| Path | Role |
 | --- | --- |
-| Framework | Next.js 15 (App Router), React 19, TypeScript |
-| Styling and motion | Tailwind CSS 3.4, Motion |
-| Data | PostgreSQL with Prisma 6 |
-| Authentication | Clerk |
-| Abuse protection | Arcjet rate limiting and bot detection |
-| Background jobs | Inngest (schedule below) |
-| AI | Google Gemini via `@google/genai` (receipt extraction, monthly insights) |
-| Email | Resend |
-| Testing | Vitest (unit), Playwright (e2e) |
+| `app/` | Routes, layouts, and route handlers |
+| `actions/` | Thin server actions |
+| `lib/services/` | Writes and business rules |
+| `lib/data/` | Reads for server components |
+| `lib/validation/` | Zod schemas for forms and actions |
+| `lib/auth/` | `requireUser()` and the Arcjet limit |
+| `lib/inngest/` | Background jobs, served at `/api/inngest` |
+| `lib/ai/` | Gemini client and model chain |
+| `prisma/` | Schema and migrations |
+| `components/` | Shared UI |
 
-### Layers
+### Design decisions
 
-`actions/` (thin server actions) call `lib/services/` (writes and rules), which use Prisma inside one transaction. Server components read through `lib/data/`, where totals are grouped SQL queries. Zod schemas are in `lib/validation/`. Details and design decisions: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-
-### Request flow
-
-1. Clerk authenticates users. The demo button requests a short-lived ticket from `/api/demo-session` and signs into a sample ledger.
-2. A receipt image is posted to `/api/scan-receipt`; Gemini returns structured fields that pre-fill the transaction form.
-3. Mutations run as action, service, one database transaction (row plus balance change), then revalidation.
-4. Dashboard and account pages render on the server, with search and filters applied in the query.
-
-### Background jobs (Inngest, UTC)
-
-| Job | Schedule |
+| Decision | Why |
 | --- | --- |
-| Recurring transactions | daily at 00:00 |
-| Budget alerts | every 6 hours |
-| Monthly reports | 1st of the month at 00:00 |
-| Demo reset | daily at 20:00 (01:30 IST), restores the demo ledger |
+| SQL aggregation | Dashboard and account totals are grouped queries in Postgres, not rows summed in JavaScript |
+| Atomic balances | The transaction row and the balance change share one `$transaction`, using increments |
+| One monthly budget | One row per user (`budgets.userId` is unique), across accounts; pace reads that amount |
+| Fan-out jobs | Cron functions only list the work; each item runs, and retries, on its own |
+| `sin1` region | `vercel.json` pins functions to Singapore, next to the database |
+| Security headers | `next.config.js` sets nosniff, a strict referrer policy, frame denial, and a camera-only permissions policy. No Content-Security-Policy, because Clerk and Next inline scripts |
 
-Each cron job fans out one event per item, so one failure does not block the others.
+Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-### Scan rate limits
+## Background jobs
 
-Receipt scans are limited per hour by Arcjet: 10 per user, 15 per IP, and 6 shared across all demo sessions. Uploads are JPEG, PNG or WebP up to 5 MB. Over the limit returns HTTP 429.
+Schedules are UTC. Defined in `lib/inngest/functions.ts`.
+
+| Function | Schedule | Purpose |
+| --- | --- | --- |
+| `trigger-recurring-transactions` | `0 0 * * *` | Finds due templates and fans out one event each |
+| `process-recurring-transaction` | event `transaction.recurring.process` | Posts one due template |
+| `check-budget-alerts` | `0 */6 * * *` | Fans out one event per budget over its threshold |
+| `process-budget-alert` | event `budget.alert.send` | Sends one budget alert |
+| `generate-monthly-reports` | `0 0 1 * *` | Fans out one event per user with last month's transactions |
+| `process-monthly-report` | event `report.monthly.send` | Sends one monthly report email |
+| `demo-reset` | `0 20 * * *` | Restores the demo ledger, and keeps the free database from pausing |
+
+## Performance
+
+Load time for the demo user (Maya). Before is 21 Oct 2026; after is the Final table in [docs/PERF-BASELINE.md](docs/PERF-BASELINE.md) (v1.4.0, 27 Oct 2026).
+
+| Route | Before | After |
+| --- | ---: | ---: |
+| `/` | 1,949 ms | 314 ms |
+| `/dashboard` | 6,850 ms | 669 ms |
+| default account | 4,512 ms | 581 ms |
+
+Dashboard queries for Maya: 13 before, 6 after ([docs/PERF.md](docs/PERF.md)). Caveat: one machine, one location, median of three, production.
 
 ## Getting started
 
-Requirements: Node.js 20+ and a PostgreSQL database.
+Prerequisites: Node.js 20 or newer, and PostgreSQL.
 
 ```bash
-git clone https://github.com/PrathamPeriwal/Ledgerly.git
-cd Ledgerly
+git clone https://github.com/PrathamPeriwal/Ledgerly.git && cd Ledgerly
 npm install
-cp .env.example .env     # then fill in the values
+cp .env.example .env
 npx prisma migrate deploy
 npm run dev
 ```
 
-Open http://localhost:3000. Every variable is described in [docs/ENV.md](docs/ENV.md).
-
-## Demo data
-
-Five personas and 992 transactions from 2026-04-01: Maya 280, Daniel 200, Priya 200, Lucas 300, Hana 12. Seeded addresses are `maya@example.com`, `daniel@example.com`, `priya@example.com`, `lucas@example.com`, and `hana@example.com`. Hana has no budget. Daniel's current month is about 90% of budget and Priya's is over 100%.
+Open http://localhost:3000. Every variable is named in [docs/ENV.md](docs/ENV.md).
 
 ## Scripts
 
 | Script | Purpose |
 | --- | --- |
-| `npm run dev` | Start the development server |
 | `npm run check` | Lint, typecheck, and production build |
 | `npm test` | Unit tests (Vitest) |
-| `npm run typecheck` | TypeScript check only |
-| `npm run test:e2e:quick` | Playwright smoke test of the demo user's dashboard and account page (needs Clerk test keys and the seeded demo users) |
-| `npm run verify` | Lint, unit tests, build, and smoke script |
-| `npm run seed:demo` | Dry run by default. With `--confirm` it **wipes** transactions, budgets, accounts, and users in the target database, then deletes only the retired Clerk user `omar@example.com` |
+| `npm run test:e2e:quick` | Playwright: Maya's dashboard and her default account |
+| `npm run check:seo` | Fetches HTML and checks the technical SEO tags |
+| `npm run check:gemini` | Sends one short receipt request per configured model |
+| `npm run seed:demo` | Dry run unless `--confirm`, which wipes transactions, budgets, accounts, and users |
 
-## Project structure
+## Testing
 
-```
-app/          routes, layouts, and route handlers
-components/   shared UI
-actions/      server actions
-lib/          queries, Prisma client, email, Inngest
-prisma/       schema and migrations
-emails/       monthly report template
-e2e/          Playwright tests
-tests/        Vitest tests
-docs/         environment and engineering notes
-```
+Unit tests cover validation, balance math, dashboard and account calculations, scan mapping, and the Gemini request shape. Integration tests use Postgres for demo users (balance changes, recurring templates, demo reset). Playwright covers demo sign-in plus Maya's dashboard and account page. CI (`.github/workflows/ci.yml`) runs lint, typecheck, and unit tests on pull requests and on pushes to `main`. End-to-end tests stay local because they need Clerk keys.
+
+## Security
+
+- Ownership is enforced in every query: services take `userId` and put it in the `where`.
+- Server actions validate with Zod before they write.
+- Arcjet covers middleware, and receipt scans are limited per user (10/hour), per IP (15/hour), and for the shared demo (6/hour).
+- Security headers: nosniff, a strict referrer policy, frame denial, and a camera-only permissions policy.
+- Secrets live only in environment variables. See [docs/ENV.md](docs/ENV.md).
 
 ## Deployment
 
-Designed for Vercel. Set the variables listed in [docs/ENV.md](docs/ENV.md) (mark secrets as **Sensitive**), run `npx prisma migrate deploy` against the production database, and register `/api/inngest` with Inngest.
+The app is on Vercel in the Singapore region (`sin1`). Postgres is Supabase. Inngest Cloud calls `/api/inngest`.
 
-## License
+The free database pauses when nothing talks to it. The nightly demo reset, a health ping every 3 days (`.github/workflows/keepalive.yml`), and ordinary use keep it awake.
 
-[MIT](LICENSE)
+## Roadmap
+
+- Category budgets
+- A production Clerk instance with a custom domain
+- Dependency major upgrades
+- CSV import and export
+
+## Notes
+
+Demo data is fictional. This is a portfolio project, not financial advice.
+
+License: [MIT](LICENSE).
