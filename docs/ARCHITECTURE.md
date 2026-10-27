@@ -55,14 +55,18 @@ Evidence for the choices (read 24 Oct 2026):
 
 ## Known leftovers
 
-`npx knip --no-exit-code` (knip 6.43). Report only; nothing here was deleted.
+`npx knip --no-exit-code` (knip 6.43). Report only, except `components/landing/landing.css`, which nothing imported or styled and which was removed.
 
-Unused files: `components/landing/landing.css`, `scripts/count-queries.mjs`, `scripts/perf-landing.mjs`, `scripts/scroll-jank.mjs`. Knip also lists `e2e/global.setup.js`; `playwright.config.mjs` runs that file as the setup project.
+Unused files: `scripts/count-queries.mjs`, `scripts/perf-landing.mjs`, `scripts/scroll-jank.mjs`. Knip also lists `e2e/global.setup.js`; `playwright.config.mjs` runs that file as the setup project.
 
 Unused dependency: `critters`. It stays. `next.config.js` sets `experimental.optimizeCss`, and that option loads `critters`.
 
-Unlisted dependencies: `@clerk/backend` (imported by `scripts/seed-demo.ts`), `postcss-load-config` (`postcss.config.mjs`), `@react-email/preview-server`.
+Unlisted dependencies: `postcss-load-config` (type comment in `postcss.config.mjs`; the code does not import it), `@react-email/preview-server`. `@clerk/backend` is declared at the installed 2.33.8.
 
 Unused exports: 64 values and 5 types. Most are shadcn pieces (`CardFooter`, `DialogFooter`, dropdown, select, sheet, drawer, table). The seven Inngest functions are exported, but `/api/inngest` imports the `functions` array. Other names are only used in their own file (`openCommandMenu`, `COMMAND_MENU_EVENT`, helpers in `lib/ai`, `lib/services`, `lib/demo`).
+
+Fresh databases are created with prisma db push: migrate deploy fails on an empty database (P3018, enum already exists), because the migration history predates a baseline. Production is unaffected.
+
+TypeScript covers actions, services, the data layer and most of the app; the shadcn UI primitives and a few legacy files (middleware.js and some app and lib files) are still JavaScript.
 
 Legacy `.js`/`.jsx` still beside the TypeScript tree: `middleware.js`. In `app/`: `layout.js`, `(main)/layout.js`, `(auth)/sign-in/[[...sign-in]]/page.jsx`, `(auth)/sign-up/[[...sign-up]]/page.jsx`, `api/scan-receipt/route.js`, `debug-auth/page.jsx`, `debug-auth/layout.jsx`. In `lib/`: `arcjet.js`, `send-email.js`, `utils.js`. In `components/`: `create-account-drawer.jsx` and these `ui/*.jsx` files: `badge`, `button`, `calendar`, `card`, `checkbox`, `drawer`, `dropdown-menu`, `input`, `popover`, `progress`, `select`, `sonner`, `switch`, `table`, `tooltip`. `actions/` is TypeScript only. No `foo.js` file has a `foo.ts` twin.
