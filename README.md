@@ -118,7 +118,7 @@ Needs Docker Desktop. Copy `.env.example` to `.env`, set `POSTGRES_PASSWORD`, an
 docker compose up --build
 ```
 
-Open http://localhost:3000. Schema is applied with `prisma db push` (the migration history does not apply cleanly on an empty database). Background jobs: `docker compose --profile jobs up`. Stop and drop the volume: `docker compose down -v`.
+Open http://localhost:3000. Fresh databases are created with prisma db push: migrate deploy fails on an empty database (P3018, enum already exists), because the migration history predates a baseline. Production is unaffected. Background jobs: `docker compose --profile jobs up`. Stop and drop the volume: `docker compose down -v`.
 
 ## Scripts
 
