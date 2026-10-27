@@ -110,6 +110,16 @@ npm run dev
 
 Open http://localhost:3000. Every variable is named in [docs/ENV.md](docs/ENV.md).
 
+### Run with Docker
+
+Needs Docker Desktop. Copy `.env.example` to `.env`, set `POSTGRES_PASSWORD`, and keep real Clerk, Gemini, and Resend keys (Clerk development keys work on localhost). Compose overrides `DATABASE_URL` and `DIRECT_URL` to the `db` service.
+
+```bash
+docker compose up --build
+```
+
+Open http://localhost:3000. Schema is applied with `prisma db push` (the migration history does not apply cleanly on an empty database). Background jobs: `docker compose --profile jobs up`. Stop and drop the volume: `docker compose down -v`.
+
 ## Scripts
 
 | Script | Purpose |

@@ -1,0 +1,74 @@
+# Local stack only. The Vercel deployment does not read this file.
+# Usage: docker compose up --build        (add --profile jobs for the Inngest dev server)
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ledgerly
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ledgerly
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ledgerly -d ledgerly"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  migrate:
+    build:
+      context: .
+      target: migrator
+    environment:
+      DATABASE_URL: postgresql://ledgerly:${POSTGRES_PASSWORD}@db:5432/ledgerly
+      DIRECT_URL: postgresql://ledgerly:${POSTGRES_PASSWORD}@db:5432/ledgerly
+    depends_on:
+      db:
+        condition: service_healthy
+    # Local setup only: "prisma migrate deploy" fails on an empty database because
+    # 20250807170552_create_models recreates enums that 20241204141034_init already made
+    # (P3018, type "TransactionType" already exists). prisma/migrations is left untouched
+    # (production was migrated step by step); "db push" builds the current schema directly.
+    command: ["npx", "prisma", "db", "push", "--skip-generate"]
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+        NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: ${NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION:-}
+        NEXT_PUBLIC_BING_SITE_VERIFICATION: ${NEXT_PUBLIC_BING_SITE_VERIFICATION:-}
+        NEXT_PUBLIC_CLERK_SIGN_IN_URL: ${NEXT_PUBLIC_CLERK_SIGN_IN_URL:-/sign-in}
+        NEXT_PUBLIC_CLERK_SIGN_UP_URL: ${NEXT_PUBLIC_CLERK_SIGN_UP_URL:-/sign-up}
+    env_file: ${ENV_FILE:-.env}
+    environment:
+      DATABASE_URL: postgresql://ledgerly:${POSTGRES_PASSWORD}@db:5432/ledgerly
+      DIRECT_URL: postgresql://ledgerly:${POSTGRES_PASSWORD}@db:5432/ledgerly
+      # Inngest dev server (profile "jobs"). INNGEST_DEV=1 puts the SDK in dev mode.
+      NEXT_PUBLIC_CLERK_SIGN_IN_URL: ${NEXT_PUBLIC_CLERK_SIGN_IN_URL:-/sign-in}
+      NEXT_PUBLIC_CLERK_SIGN_UP_URL: ${NEXT_PUBLIC_CLERK_SIGN_UP_URL:-/sign-up}
+      INNGEST_DEV: "1"
+      INNGEST_BASE_URL: http://inngest:8288
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  inngest:
+    profiles: ["jobs"]
+    image: inngest/inngest
+    command: ["inngest", "dev", "-u", "http://app:3000/api/inngest"]
+    ports:
+      - "8288:8288"
+      - "8289:8289"
+    depends_on:
+      - app
+
+volumes:
+  pgdata:

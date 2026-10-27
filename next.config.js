@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Standalone tracing is for the local Docker image only. Vercel keeps the default output.
+  output: process.env.DOCKER_BUILD === "1" ? "standalone" : undefined,
+
   // Disable Turbopack due to font loading issues with Next.js 15
   // Re-enable when Turbopack font support is stable
   experimental: {
