@@ -1,0 +1,5 @@
+-- App tables only. Prisma connects as a role that bypasses RLS.
+ALTER TABLE "users" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "accounts" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "transactions" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "budgets" ENABLE ROW LEVEL SECURITY;

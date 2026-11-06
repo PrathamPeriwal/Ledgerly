@@ -23,7 +23,11 @@ export async function GET() {
   }
 
   try {
-    await db.budget.count();
+    await Promise.all([
+      db.user.count(),
+      db.account.count(),
+      db.transaction.findFirst({ select: { id: true } }),
+    ]);
     return NextResponse.json({ ok: true }, { headers });
   } catch {
     return NextResponse.json({ ok: false }, { status: 503, headers });
