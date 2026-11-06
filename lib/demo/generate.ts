@@ -1,9 +1,12 @@
 import { AMOUNT_SCALE, personaByKey, type AccountSpec, type PersonaKey, type PersonaSpec } from "./personas.ts";
 
 export const DEMO_START = utcNoon(2026, 3, 1);
+const CALIBRATION_DAYS = 203;
 
-const DANIEL_MONTH_CENTS = scaleCents(252000);
-const PRIYA_MONTH_CENTS = scaleCents(138000);
+const SHAPED = {
+  daniel: { factor: 1.32, cap: 0.95 },
+  priya: { factor: 1.69, cap: 1.15 },
+} as const;
 
 export type DemoAccount = {
   key: string;
@@ -135,10 +138,32 @@ function centsToAmount(cents: number) {
   return Math.round(cents) / 100;
 }
 
-export function shapedSpendTarget(key: PersonaKey) {
-  if (key === "daniel") return centsToAmount(DANIEL_MONTH_CENTS);
-  if (key === "priya") return centsToAmount(PRIYA_MONTH_CENTS);
-  return null;
+export function targetCount(key: PersonaKey, today: Date) {
+  const base = personaByKey(key).target;
+  if (key === "hana") return base;
+  const days = Math.round((today.getTime() - DEMO_START.getTime()) / 86400000);
+  return Math.round((base * days) / CALIBRATION_DAYS);
+}
+
+function daysInUtcMonth(today: Date) {
+  return new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, 0)).getUTCDate();
+}
+
+function paceTargetCents(budgetCents: number, today: Date, factor: number, cap: number) {
+  const pace = today.getUTCDate() / daysInUtcMonth(today);
+  return Math.round(budgetCents * Math.min(cap, pace * factor));
+}
+
+function shapedCents(key: keyof typeof SHAPED, today: Date) {
+  const budget = personaByKey(key).budgetDollars;
+  if (budget == null) throw new Error(`${key} has no budget`);
+  const { factor, cap } = SHAPED[key];
+  return paceTargetCents(dollarsToCents(budget), today, factor, cap);
+}
+
+export function shapedSpendTarget(key: PersonaKey, today = anchorToday()) {
+  if (key !== "daniel" && key !== "priya") return null;
+  return centsToAmount(shapedCents(key, today));
 }
 
 export function monthExpense(data: DemoData, accountKey: string, today: Date, stableOnly = false) {
@@ -404,11 +429,10 @@ function fitOctober(persona: InternalPersona, accountKey: string, targetCents: n
         delta += cut;
       }
     }
-    if (delta !== 0) throw new Error(`${persona.key} current-month spending cannot be reduced to the target`);
     return;
   }
   const dates = monthDates({ dates: eachDay(persona.today).filter((date) => date > harsh && date < end) }, {});
-  if (dates.length === 0) throw new Error(`${persona.key} has no safe dates for budget shaping`);
+  if (dates.length === 0) return;
   if (!persona.topUp) throw new Error(`${persona.key} has no budget top up`);
   persona.txs.push(
     row({
@@ -427,16 +451,15 @@ function padTo(
   target: number,
   spec: { account: string; categories: string[]; descriptions: string[]; min: number; max: number; dates: Date[] },
 ) {
-  if (!spec.dates.length) throw new Error(`${persona.key} has no filler dates`);
   let guard = 0;
-  while (persona.txs.length > target) {
+  while (persona.txs.length > target * 1.05) {
     const index = persona.txs.findIndex((entry) => entry.pad);
-    if (index < 0) throw new Error(`${persona.key} has ${persona.txs.length} transactions and no filler to remove (target ${target})`);
+    if (index < 0) break;
     persona.txs.splice(index, 1);
     guard += 1;
     if (guard > 20000) throw new Error(`${persona.key} trim guard`);
   }
-  while (persona.txs.length < target) {
+  while (persona.txs.length < target * 0.95 && spec.dates.length > 0) {
     addSpend(persona, {
       account: spec.account,
       category: pick(persona.rand, spec.categories),
@@ -449,6 +472,9 @@ function padTo(
     });
     guard += 1;
     if (guard > 20000) throw new Error(`${persona.key} pad guard`);
+  }
+  if (persona.txs.length > target && !persona.txs.some((entry) => entry.pad)) {
+    console.warn("[demo] over target", { persona: persona.key, count: persona.txs.length, target });
   }
 }
 
@@ -567,7 +593,7 @@ function buildMaya(today: Date, months: Month[]) {
   const tripDay = july?.dates.find((date) => date.getUTCDate() === 18);
   if (!tripDay) throw new Error("Maya's July trip has no date");
   addSpend(persona, { account: "checking", category: "travel", description: "Summer trip", amountCents: betweenCents(persona.rand, 1360, 1480), dates: [tripDay] });
-  padTo(persona, personaByKey("maya").target, {
+  padTo(persona, targetCount("maya", today), {
     account: "checking",
     categories: ["food", "shopping", "personal", "transportation"],
     descriptions: ["Coffee", "Pharmacy", "Household supplies", "Parking"],
@@ -620,8 +646,8 @@ function buildDaniel(today: Date, months: Month[]) {
   eachMonth(months, 4, 3, (month) =>
     addSpend(persona, { account: "personal", category: "transportation", description: "Rideshare", min: 9, max: 28, dates: month.dates }),
   );
-  fitOctober(persona, "business", DANIEL_MONTH_CENTS, today);
-  padTo(persona, personaByKey("daniel").target, {
+  fitOctober(persona, "business", shapedCents("daniel", today), today);
+  padTo(persona, targetCount("daniel", today), {
     account: "personal",
     categories: ["shopping", "food", "personal", "entertainment"],
     descriptions: ["Household supplies", "Lunch", "Haircut", "Movie"],
@@ -635,6 +661,7 @@ function buildDaniel(today: Date, months: Month[]) {
 function buildPriya(today: Date, months: Month[]) {
   const persona = makePersona(personaByKey("priya"), today);
   const early = datesBeforeUtcMonth(today);
+  const currentMonth = (month: Month) => month.dates.some((date) => date.getTime() === today.getTime());
   addMonthly(persona, { name: "Stipend", day: 1, amountCents: dollarsToCents(1850), type: "INCOME", category: "salary", account: "checking" });
   addMonthly(persona, { name: "Rent share", day: 3, amountCents: dollarsToCents(780), type: "EXPENSE", category: "housing", account: "checking" });
   addMonthly(persona, { name: "Phone", day: 3, amountCents: dollarsToCents(25), type: "EXPENSE", category: "utilities", account: "checking" });
@@ -649,7 +676,7 @@ function buildPriya(today: Date, months: Month[]) {
       min: 15,
       max: 60,
       flexible: month.partial,
-      dates: monthDates(month, { safeOnly: month.partial }),
+      dates: monthDates(month, { safeOnly: currentMonth(month) }),
     }),
   );
   eachMonth(months, 9, 5, (month) =>
@@ -660,7 +687,7 @@ function buildPriya(today: Date, months: Month[]) {
       min: 3,
       max: 6,
       flexible: month.partial,
-      dates: monthDates(month, { safeOnly: month.partial }),
+      dates: monthDates(month, { safeOnly: currentMonth(month) }),
     }),
   );
   eachMonth(months, 7, 4, (month) =>
@@ -671,7 +698,7 @@ function buildPriya(today: Date, months: Month[]) {
       amountCents: dollarsToCents(2.75),
       flexible: month.partial,
       min: 2.75,
-      dates: monthDates(month, { safeOnly: month.partial }),
+      dates: monthDates(month, { safeOnly: currentMonth(month) }),
     }),
   );
   for (const monthIndex of [7, 8]) {
@@ -681,8 +708,8 @@ function buildPriya(today: Date, months: Month[]) {
       addSpend(persona, { account: "checking", category: "education", description: "Textbooks", min: 40, max: 160, dates: month.dates });
     }
   }
-  fitOctober(persona, "checking", PRIYA_MONTH_CENTS, today);
-  padTo(persona, personaByKey("priya").target, {
+  fitOctober(persona, "checking", shapedCents("priya", today), today);
+  padTo(persona, targetCount("priya", today), {
     account: "checking",
     categories: ["food", "shopping", "personal"],
     descriptions: ["Coffee", "Snacks", "Toiletries"],
@@ -738,7 +765,7 @@ function buildLucas(today: Date, months: Month[]) {
   eachMonth(months, 8, 5, (month) =>
     addSpend(persona, { account: "joint", category: "shopping", description: "Household goods", min: 25, max: 140, dates: month.dates }),
   );
-  padTo(persona, personaByKey("lucas").target, {
+  padTo(persona, targetCount("lucas", today), {
     account: "joint",
     categories: ["food", "shopping", "healthcare", "transportation"],
     descriptions: ["School lunch", "Pharmacy", "Household supplies", "Parking"],

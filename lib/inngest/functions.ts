@@ -157,14 +157,21 @@ export const demoReset = inngest.createFunction(
   {
     id: "demo-reset",
     name: "Demo Reset",
-    retries: RETRIES,
+    retries: 1,
   },
   // 20:00 UTC. This daily job also keeps the free-tier Supabase project from pausing.
   { cron: "0 20 * * *" },
   async ({ step }) => {
     return step.run("reset-demo-user", async () => {
+      const started = Date.now();
+      console.log("[inngest:demo-reset] start");
       try {
-        return await resetDemoUser();
+        const result = await resetDemoUser();
+        console.log("[inngest:demo-reset] done", {
+          durationMs: Date.now() - started,
+          transactions: result.reset ? result.transactions : 0,
+        });
+        return result;
       } catch (error) {
         console.error("[inngest:demo-reset]", failureMessage(error));
         throw error;

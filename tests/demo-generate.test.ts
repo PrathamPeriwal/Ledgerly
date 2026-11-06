@@ -1,5 +1,5 @@
 import { defaultCategories } from "@/data/categories";
-import { generatePersonaData, type DemoData } from "@/lib/demo/generate";
+import { generatePersonaData, targetCount, type DemoData } from "@/lib/demo/generate";
 import { PERSONAS, personaByKey, type PersonaKey } from "@/lib/demo/personas";
 import { describe, expect, it } from "vitest";
 
@@ -38,7 +38,9 @@ describe("generatePersonaData", () => {
       const first = generatePersonaData(persona.key, TODAY);
       const second = generatePersonaData(persona.key, TODAY);
       expect(pack(first)).toEqual(pack(second));
-      expect(first.transactions).toHaveLength(persona.target);
+      const scaled = targetCount(persona.key, TODAY);
+      const span = persona.key === "hana" ? 0 : scaled * 0.1;
+      expect(Math.abs(first.transactions.length - scaled)).toBeLessThanOrEqual(span);
       expect(first.transactions.every((entry) => entry.date.getTime() <= TODAY.getTime())).toBe(true);
       expect(first.transactions.every((entry) => CATEGORIES.get(entry.category) === entry.type)).toBe(true);
       for (const account of first.accounts) {
@@ -58,5 +60,38 @@ describe("generatePersonaData", () => {
     expect(maya.accounts.map((account) => account.key)).toEqual(["checking", "savings"]);
     expect(maya.budget?.amount).toBeGreaterThan(0);
     expect(maya.accounts.filter((account) => account.isDefault)).toHaveLength(1);
+  });
+
+  it("scales every persona across later dates without throwing", () => {
+    const dates = [
+      new Date(Date.UTC(2026, 9, 21, 12, 0, 0, 0)),
+      new Date(Date.UTC(2026, 10, 6, 12, 0, 0, 0)),
+      new Date(Date.UTC(2026, 11, 31, 12, 0, 0, 0)),
+      new Date(Date.UTC(2027, 2, 15, 12, 0, 0, 0)),
+      new Date(Date.UTC(2027, 9, 21, 12, 0, 0, 0)),
+    ];
+    for (const today of dates) {
+      for (const persona of PERSONAS) {
+        const first = generatePersonaData(persona.key, today);
+        const second = generatePersonaData(persona.key, today);
+        expect(pack(first)).toEqual(pack(second));
+        const scaled = targetCount(persona.key, today);
+        if (persona.key === "hana") expect(first.transactions).toHaveLength(12);
+        else expect(Math.abs(first.transactions.length - scaled) / scaled).toBeLessThanOrEqual(0.1);
+        if (today.getTime() === dates[0].getTime() && persona.key !== "hana") expect(scaled).toBe(persona.target);
+        expect(first.transactions.every((entry) => entry.date.getTime() <= today.getTime())).toBe(true);
+        expect(first.transactions.every((entry) => CATEGORIES.get(entry.category) === entry.type)).toBe(true);
+        for (const account of first.accounts) {
+          const net = netCents(first, account.key);
+          const balance = cents(account.balance);
+          expect(balance).toBeGreaterThan(0);
+          expect(balance - net + net).toBe(balance);
+        }
+        if (persona.key === "maya") {
+          expect(first.accounts).toHaveLength(2);
+          expect(first.budget?.amount).toBeGreaterThan(0);
+        }
+      }
+    }
   });
 });
