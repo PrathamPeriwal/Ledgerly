@@ -48,3 +48,15 @@ jobs:
               exit 1
             fi
           done
+
+      - name: Re-sync Inngest
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://ledgerly-finance-one.vercel.app' }}
+        run: |
+          set -euo pipefail
+          code=$(curl -sS -o /tmp/inngest-sync.json -w "%{http_code}" --max-time 60 -X PUT "$SITE_URL/api/inngest")
+          echo "inngest $code"
+          if [ "$code" -ge 400 ]; then
+            echo "inngest sync failed"
+            exit 1
+          fi
