@@ -27,9 +27,28 @@ The per-item functions (`process-*`) are event-driven, retried, and do the real 
 
 ## Keeping the free database awake
 
-The free database pauses when nothing talks to it. Three things keep it awake: the nightly demo reset (Inngest `demo-reset`), a health ping every 3 days, and ordinary use of the app.
+The free database pauses when nothing talks to it. What keeps it awake: the nightly demo reset (Inngest `demo-reset`, `0 20 * * *`), a daily GitHub Actions ping, and ordinary use of the app. The Pro plan is the only option that guarantees the project will not pause.
 
-`GET /api/health` counts the budget table and returns `{ ok: true }` with no rows. GitHub Actions calls it on `17 3 */3 * *` (and on demand) via `.github/workflows/keepalive.yml`. The URL is the `SITE_URL` repository variable, or the production site when that variable is empty. Middleware and robots treat `/api/health` like the other `/api` routes (not indexed; `CURL` is allowed so this ping is not stopped as a bot). The route also rate-limits each IP to 30 requests a minute.
+`GET /api/health` reads three small queries in parallel (a count of `users`, a count of `accounts`, and one `transactions` row) and returns `{ ok: true }` with no rows. GitHub Actions calls it three times, 20 seconds apart, every day at `17 3 * * *` (and on demand) via `.github/workflows/keepalive.yml`. The URL is the `SITE_URL` repository variable, or the production site when that variable is empty. The same workflow optionally calls the Supabase REST endpoint `users?select=id&limit=1` three times when `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` are set. That step may use only the publishable or anon key. Middleware and robots treat `/api/health` like the other `/api` routes (not indexed; `CURL` is allowed so this ping is not stopped as a bot). The route also rate-limits each IP to 30 requests a minute.
+
+Row Level Security is enabled on `users`, `accounts`, `transactions`, and `budgets`. There are no policies, so the `anon` role sees no rows. Prisma connects as `postgres`, which has `rolbypassrls`, so the app keeps working. `_prisma_migrations` is unchanged. Rollback:
+
+```sql
+ALTER TABLE "users" DISABLE ROW LEVEL SECURITY;
+ALTER TABLE "accounts" DISABLE ROW LEVEL SECURITY;
+ALTER TABLE "transactions" DISABLE ROW LEVEL SECURITY;
+ALTER TABLE "budgets" DISABLE ROW LEVEL SECURITY;
+```
+
+## Inngest sync
+
+`app/api/inngest/route.ts` calls `serve()` with the seven functions from `lib/inngest/functions.ts`: `check-budget-alerts`, `process-budget-alert`, `generate-monthly-reports`, `process-monthly-report`, `trigger-recurring-transactions`, `process-recurring-transaction`, and `demo-reset`. The handler does not set `serveHost` or `servePath`. This SDK reads `INNGEST_SERVE_HOST` and `INNGEST_SERVE_PATH` when they are set; neither is set in the repo. If both are unset, the sync URL is the `Host` of the request that registers the app. A `PUT` to `/api/inngest` is the manual sync ([Inngest serve reference](https://www.inngest.com/docs/reference/typescript/v3/serve)).
+
+After every deploy, open the Inngest Functions page and check two things: all 7 functions are listed and failure rate is 0%, and the sync URL is the production domain (`https://ledgerly-finance-one.vercel.app`), never a deployment-specific URL.
+
+## Demo data over time
+
+Persona transaction targets in `lib/demo/personas.ts` were calibrated for 2026-10-21. `targetCount` scales each base target by the number of days since 2026-04-01 divided by 203 (the span from that start to the calibration date), so 2026-10-21 still produces the original counts. Hana stays at 12. The generator adds or removes filler to land within 5% of the scaled target and does not throw when fixed rows alone are already over it. Daniel's and Priya's current-month spend follows the day of the month (`min(cap, day/daysInMonth * factor)`).
 
 ## AI
 

@@ -147,7 +147,9 @@ Unit tests cover validation, balance math, dashboard and account calculations, s
 
 The app is on Vercel in the Singapore region (`sin1`). Postgres is Supabase. Inngest Cloud calls `/api/inngest`.
 
-The free database pauses when nothing talks to it. The nightly demo reset, a health ping every 3 days (`.github/workflows/keepalive.yml`), and ordinary use keep it awake.
+The free database pauses when nothing talks to it. The nightly demo reset, a daily health ping (`.github/workflows/keepalive.yml`, three calls 20 seconds apart, plus an optional Supabase REST ping), and ordinary use keep it awake. The Pro plan is the only guarantee against a pause. Row Level Security is on for the four app tables; the rollback is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+After every deploy, check the Inngest Functions page: 7 functions, 0% failures, and a sync URL on the production domain (never a deployment-specific URL).
 
 ## Roadmap
 
